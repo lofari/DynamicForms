@@ -1,4 +1,4 @@
-package com.lfr.dynamicforms.ui.theme
+package com.lfr.dynamicforms.presentation.theme
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Shapes

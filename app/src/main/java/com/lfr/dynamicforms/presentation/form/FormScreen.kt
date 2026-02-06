@@ -48,7 +48,7 @@ import com.lfr.dynamicforms.domain.model.Page
 import com.lfr.dynamicforms.domain.model.SectionHeaderElement
 import com.lfr.dynamicforms.domain.model.TextFieldElement
 import com.lfr.dynamicforms.presentation.elements.FormElementRenderer
-import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
+import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 import androidx.compose.ui.tooling.preview.Preview
 
 /**
@@ -89,7 +89,6 @@ private fun groupElementsIntoSections(elements: List<FormElement>): List<Section
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormScreen(
-    formId: String,
     onNavigateBack: () -> Unit,
     onNavigateToSuccess: (String, String) -> Unit,
     viewModel: FormViewModel = hiltViewModel()
@@ -97,18 +96,11 @@ fun FormScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(formId) {
-        viewModel.onAction(FormAction.LoadForm(formId))
-    }
-
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 is FormEffect.NavigateToSuccess -> onNavigateToSuccess(effect.formId, effect.message)
-                is FormEffect.ShowError -> {
-                    snackbarHostState.showSnackbar(effect.message)
-                }
-                is FormEffect.DraftSaved -> { }
+                is FormEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
             }
         }
     }

@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.FileUploadElement
-import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
+import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 
 @Composable
 fun DynamicFileUpload(

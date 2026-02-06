@@ -1,5 +1,6 @@
 package com.lfr.dynamicforms.presentation.form
 
+import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.lfr.dynamicforms.MainDispatcherRule
 import com.lfr.dynamicforms.domain.model.Form
@@ -38,9 +39,8 @@ class FormViewModelTest {
     private val validatePage = mockk<ValidatePageUseCase>()
     private val evaluateVisibility = mockk<EvaluateVisibilityUseCase>()
 
-    private fun createViewModel() = FormViewModel(
-        getForm, saveDraft, submitForm, validatePage, evaluateVisibility
-    )
+    private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
+        FormViewModel(savedStateHandle, getForm, saveDraft, submitForm, validatePage, evaluateVisibility)
 
     private fun loadedViewModel(pages: Int = 2): FormViewModel {
         val pageList = (1..pages).map {

@@ -1,4 +1,4 @@
-package com.lfr.dynamicforms.ui.theme
+package com.lfr.dynamicforms.presentation.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

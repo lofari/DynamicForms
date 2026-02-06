@@ -19,12 +19,10 @@ fun AppNavHost() {
                 onFormClick = { formId -> navController.navigate(FormWizardRoute(formId)) }
             )
         }
-        composable<FormWizardRoute> { backStackEntry ->
-            val route = backStackEntry.toRoute<FormWizardRoute>()
+        composable<FormWizardRoute> {
             FormScreen(
-                formId = route.formId,
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToSuccess = { formId, message ->
+                onNavigateToSuccess = { formId, _ ->
                     navController.navigate(FormSuccessRoute(formId)) {
                         popUpTo(FormListRoute) { inclusive = false }
                     }

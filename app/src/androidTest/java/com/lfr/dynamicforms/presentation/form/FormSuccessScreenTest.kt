@@ -3,7 +3,7 @@ package com.lfr.dynamicforms.presentation.form
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
+import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test

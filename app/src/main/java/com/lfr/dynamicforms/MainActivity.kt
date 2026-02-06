@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.lfr.dynamicforms.presentation.navigation.AppNavHost
-import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
+import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

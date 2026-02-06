@@ -4,7 +4,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import com.lfr.dynamicforms.domain.model.DropdownElement
 import com.lfr.dynamicforms.domain.model.SelectOption
-import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
+import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 import org.junit.Rule
 import org.junit.Test
 

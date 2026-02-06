@@ -2,12 +2,11 @@ package com.lfr.dynamicforms.presentation.elements
 
 import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onAllNodes
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.lfr.dynamicforms.domain.model.MultiSelectElement
 import com.lfr.dynamicforms.domain.model.SelectOption
-import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
+import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test

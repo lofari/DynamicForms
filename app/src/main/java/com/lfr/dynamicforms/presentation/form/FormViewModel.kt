@@ -1,5 +1,6 @@
 package com.lfr.dynamicforms.presentation.form
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lfr.dynamicforms.domain.model.RepeatingGroupElement
@@ -17,6 +18,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class FormViewModel @Inject constructor(
+    savedStateHandle: SavedStateHandle,
     private val getForm: GetFormUseCase,
     private val saveDraft: SaveDraftUseCase,
     private val submitForm: SubmitFormUseCase,
@@ -29,6 +31,11 @@ class FormViewModel @Inject constructor(
 
     private val _effect = Channel<FormEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
+
+    init {
+        val formId = savedStateHandle.get<String>("formId")
+        if (formId != null) loadForm(formId)
+    }
 
     fun onAction(action: FormAction) {
         when (action) {
