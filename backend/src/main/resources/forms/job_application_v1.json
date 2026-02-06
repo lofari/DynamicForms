@@ -1,0 +1,173 @@
+{
+  "formId": "job_application_v1",
+  "title": "Job Application",
+  "description": "Apply for an open position",
+  "pages": [
+    {
+      "pageId": "ja_page_1",
+      "title": "Personal Details",
+      "elements": [
+        {
+          "type": "section_header",
+          "id": "ja_header_personal",
+          "label": "About You",
+          "subtitle": "Tell us who you are"
+        },
+        {
+          "type": "text_field",
+          "id": "applicant_name",
+          "label": "Full Name",
+          "required": true,
+          "validation": {"minLength": 2, "maxLength": 80}
+        },
+        {
+          "type": "text_field",
+          "id": "email",
+          "label": "Email Address",
+          "required": true,
+          "validation": {"pattern": "^[^@]+@[^@]+\\.[^@]+$", "errorMessage": "Enter a valid email"}
+        },
+        {
+          "type": "text_field",
+          "id": "phone",
+          "label": "Phone Number"
+        },
+        {
+          "type": "dropdown",
+          "id": "position",
+          "label": "Position Applied For",
+          "required": true,
+          "options": [
+            {"value": "android_dev", "label": "Android Developer"},
+            {"value": "ios_dev", "label": "iOS Developer"},
+            {"value": "backend_dev", "label": "Backend Developer"},
+            {"value": "designer", "label": "UI/UX Designer"},
+            {"value": "qa", "label": "QA Engineer"}
+          ]
+        },
+        {
+          "type": "radio",
+          "id": "work_auth",
+          "label": "Are you authorized to work in this country?",
+          "required": true,
+          "options": [
+            {"value": "yes", "label": "Yes"},
+            {"value": "no", "label": "No"},
+            {"value": "visa_needed", "label": "I need visa sponsorship"}
+          ]
+        }
+      ]
+    },
+    {
+      "pageId": "ja_page_2",
+      "title": "Experience",
+      "elements": [
+        {
+          "type": "section_header",
+          "id": "ja_header_exp",
+          "label": "Work Experience"
+        },
+        {
+          "type": "slider",
+          "id": "years_exp",
+          "label": "Total Years of Experience",
+          "min": 0,
+          "max": 30,
+          "step": 1
+        },
+        {
+          "type": "repeating_group",
+          "id": "work_history",
+          "label": "Previous Positions",
+          "minItems": 1,
+          "maxItems": 5,
+          "elements": [
+            {
+              "type": "text_field",
+              "id": "company",
+              "label": "Company",
+              "required": true
+            },
+            {
+              "type": "text_field",
+              "id": "job_title",
+              "label": "Job Title",
+              "required": true
+            },
+            {
+              "type": "text_field",
+              "id": "duration",
+              "label": "Duration (e.g., 2 years)"
+            }
+          ]
+        },
+        {
+          "type": "section_header",
+          "id": "ja_header_skills",
+          "label": "Skills"
+        },
+        {
+          "type": "multi_select",
+          "id": "tech_skills",
+          "label": "Technical Skills",
+          "options": [
+            {"value": "kotlin", "label": "Kotlin"},
+            {"value": "java", "label": "Java"},
+            {"value": "swift", "label": "Swift"},
+            {"value": "python", "label": "Python"},
+            {"value": "typescript", "label": "TypeScript"},
+            {"value": "go", "label": "Go"},
+            {"value": "sql", "label": "SQL"}
+          ]
+        }
+      ]
+    },
+    {
+      "pageId": "ja_page_3",
+      "title": "Documents",
+      "elements": [
+        {
+          "type": "section_header",
+          "id": "ja_header_docs",
+          "label": "Upload Documents"
+        },
+        {
+          "type": "file_upload",
+          "id": "resume",
+          "label": "Resume / CV",
+          "required": true,
+          "allowedTypes": ["pdf", "docx"]
+        },
+        {
+          "type": "file_upload",
+          "id": "cover_letter",
+          "label": "Cover Letter",
+          "allowedTypes": ["pdf", "docx"]
+        },
+        {
+          "type": "toggle",
+          "id": "has_portfolio",
+          "label": "I have a portfolio to share"
+        },
+        {
+          "type": "text_field",
+          "id": "portfolio_url",
+          "label": "Portfolio URL",
+          "visibleWhen": {"fieldId": "has_portfolio", "operator": "equals", "value": "true"}
+        },
+        {
+          "type": "text_field",
+          "id": "cover_note",
+          "label": "Anything else you'd like us to know?",
+          "multiline": true
+        },
+        {
+          "type": "checkbox",
+          "id": "consent",
+          "label": "I consent to the processing of my personal data",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

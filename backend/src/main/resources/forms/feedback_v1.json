@@ -1,0 +1,44 @@
+{
+  "formId": "feedback_v1",
+  "title": "Feedback Form",
+  "description": "Share your feedback",
+  "pages": [
+    {
+      "pageId": "fb_page_1",
+      "title": "Your Feedback",
+      "elements": [
+        {
+          "type": "section_header",
+          "id": "fb_header",
+          "label": "We value your feedback"
+        },
+        {
+          "type": "slider",
+          "id": "rating",
+          "label": "Overall Rating",
+          "min": 1,
+          "max": 5,
+          "step": 1,
+          "required": true
+        },
+        {
+          "type": "text_field",
+          "id": "comments",
+          "label": "Comments",
+          "multiline": true
+        },
+        {
+          "type": "radio",
+          "id": "recommend",
+          "label": "Would you recommend us?",
+          "required": true,
+          "options": [
+            {"value": "yes", "label": "Yes"},
+            {"value": "no", "label": "No"},
+            {"value": "maybe", "label": "Maybe"}
+          ]
+        }
+      ]
+    }
+  ]
+}

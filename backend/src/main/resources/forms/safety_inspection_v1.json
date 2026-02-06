@@ -1,0 +1,143 @@
+{
+  "formId": "safety_inspection_v1",
+  "title": "Safety Inspection",
+  "description": "Workplace safety checklist with photo evidence",
+  "pages": [
+    {
+      "pageId": "si_page_1",
+      "title": "Site Details",
+      "elements": [
+        {
+          "type": "section_header",
+          "id": "si_header_site",
+          "label": "Inspection Site",
+          "subtitle": "Identify the location and inspector"
+        },
+        {
+          "type": "text_field",
+          "id": "site_name",
+          "label": "Site / Building Name",
+          "required": true
+        },
+        {
+          "type": "dropdown",
+          "id": "site_area",
+          "label": "Area",
+          "required": true,
+          "options": [
+            {"value": "warehouse", "label": "Warehouse"},
+            {"value": "office", "label": "Office"},
+            {"value": "factory", "label": "Factory Floor"},
+            {"value": "outdoor", "label": "Outdoor / Yard"}
+          ]
+        },
+        {
+          "type": "text_field",
+          "id": "inspector_name",
+          "label": "Inspector Name",
+          "required": true
+        },
+        {
+          "type": "date_picker",
+          "id": "inspection_date",
+          "label": "Inspection Date",
+          "required": true
+        }
+      ]
+    },
+    {
+      "pageId": "si_page_2",
+      "title": "Checklist",
+      "elements": [
+        {
+          "type": "section_header",
+          "id": "si_header_checks",
+          "label": "Safety Checks",
+          "subtitle": "Check each item and note any issues"
+        },
+        {
+          "type": "checkbox",
+          "id": "fire_exits_clear",
+          "label": "Fire exits are unobstructed and clearly marked"
+        },
+        {
+          "type": "checkbox",
+          "id": "extinguishers_ok",
+          "label": "Fire extinguishers are present and inspected"
+        },
+        {
+          "type": "checkbox",
+          "id": "ppe_available",
+          "label": "Required PPE is available and in good condition"
+        },
+        {
+          "type": "checkbox",
+          "id": "first_aid_stocked",
+          "label": "First aid kits are stocked and accessible"
+        },
+        {
+          "type": "toggle",
+          "id": "hazards_found",
+          "label": "Were any hazards found?"
+        },
+        {
+          "type": "repeating_group",
+          "id": "hazard_list",
+          "label": "Hazards",
+          "minItems": 1,
+          "maxItems": 5,
+          "visibleWhen": {"fieldId": "hazards_found", "operator": "equals", "value": "true"},
+          "elements": [
+            {
+              "type": "text_field",
+              "id": "hazard_desc",
+              "label": "Description",
+              "required": true
+            },
+            {
+              "type": "dropdown",
+              "id": "hazard_severity",
+              "label": "Severity",
+              "required": true,
+              "options": [
+                {"value": "low", "label": "Low"},
+                {"value": "medium", "label": "Medium"},
+                {"value": "high", "label": "High"},
+                {"value": "critical", "label": "Critical"}
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "pageId": "si_page_3",
+      "title": "Evidence & Sign-off",
+      "elements": [
+        {
+          "type": "section_header",
+          "id": "si_header_evidence",
+          "label": "Supporting Evidence"
+        },
+        {
+          "type": "file_upload",
+          "id": "photo_evidence",
+          "label": "Photo Evidence",
+          "allowedTypes": ["jpg", "png", "heic"]
+        },
+        {
+          "type": "text_field",
+          "id": "additional_notes",
+          "label": "Additional Notes",
+          "multiline": true
+        },
+        {
+          "type": "signature",
+          "id": "inspector_signature",
+          "label": "Inspector Signature",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

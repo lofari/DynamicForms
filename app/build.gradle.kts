@@ -20,9 +20,18 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Default to mock interceptor; override in debug to use real backend
+        buildConfigField("String", "BASE_URL", "\"https://api.dynamicforms.mock/\"")
+        buildConfigField("Boolean", "USE_MOCK", "true")
     }
 
     buildTypes {
+        debug {
+            // Point to real Ktor backend (emulator localhost)
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/\"")
+            buildConfigField("Boolean", "USE_MOCK", "false")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -37,6 +46,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 

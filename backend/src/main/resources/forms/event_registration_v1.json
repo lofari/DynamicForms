@@ -1,0 +1,131 @@
+{
+  "formId": "event_registration_v1",
+  "title": "Event Registration",
+  "description": "Register for an upcoming event",
+  "pages": [
+    {
+      "pageId": "ev_page_1",
+      "title": "Attendee Info",
+      "elements": [
+        {
+          "type": "section_header",
+          "id": "ev_header_attendee",
+          "label": "Attendee Information",
+          "subtitle": "Who's coming?"
+        },
+        {
+          "type": "text_field",
+          "id": "attendee_name",
+          "label": "Full Name",
+          "required": true
+        },
+        {
+          "type": "text_field",
+          "id": "attendee_email",
+          "label": "Email",
+          "required": true,
+          "validation": {"pattern": "^[^@]+@[^@]+\\.[^@]+$", "errorMessage": "Enter a valid email"}
+        },
+        {
+          "type": "dropdown",
+          "id": "ticket_type",
+          "label": "Ticket Type",
+          "required": true,
+          "options": [
+            {"value": "general", "label": "General Admission"},
+            {"value": "vip", "label": "VIP"},
+            {"value": "speaker", "label": "Speaker"},
+            {"value": "sponsor", "label": "Sponsor"}
+          ]
+        },
+        {
+          "type": "text_field",
+          "id": "company_org",
+          "label": "Company / Organization",
+          "visibleWhen": {"fieldId": "ticket_type", "operator": "not_equals", "value": "general"}
+        },
+        {
+          "type": "text_field",
+          "id": "talk_title",
+          "label": "Talk Title",
+          "required": true,
+          "visibleWhen": {"fieldId": "ticket_type", "operator": "equals", "value": "speaker"}
+        },
+        {
+          "type": "text_field",
+          "id": "talk_abstract",
+          "label": "Talk Abstract",
+          "multiline": true,
+          "visibleWhen": {"fieldId": "ticket_type", "operator": "equals", "value": "speaker"}
+        },
+        {
+          "type": "number_field",
+          "id": "group_size",
+          "label": "Number of Attendees in Your Group",
+          "visibleWhen": {"fieldId": "ticket_type", "operator": "equals", "value": "sponsor"},
+          "validation": {"min": 1, "max": 20}
+        }
+      ]
+    },
+    {
+      "pageId": "ev_page_2",
+      "title": "Preferences",
+      "elements": [
+        {
+          "type": "section_header",
+          "id": "ev_header_prefs",
+          "label": "Event Preferences"
+        },
+        {
+          "type": "multi_select",
+          "id": "sessions",
+          "label": "Which sessions will you attend?",
+          "options": [
+            {"value": "keynote", "label": "Opening Keynote"},
+            {"value": "workshop_android", "label": "Android Workshop"},
+            {"value": "workshop_ios", "label": "iOS Workshop"},
+            {"value": "panel_ai", "label": "AI Panel Discussion"},
+            {"value": "networking", "label": "Networking Mixer"}
+          ],
+          "validation": {"minSelections": 1, "errorMessage": "Select at least one session"}
+        },
+        {
+          "type": "radio",
+          "id": "dietary",
+          "label": "Dietary Requirements",
+          "options": [
+            {"value": "none", "label": "None"},
+            {"value": "vegetarian", "label": "Vegetarian"},
+            {"value": "vegan", "label": "Vegan"},
+            {"value": "halal", "label": "Halal"},
+            {"value": "other", "label": "Other"}
+          ]
+        },
+        {
+          "type": "text_field",
+          "id": "dietary_other",
+          "label": "Please specify dietary requirements",
+          "visibleWhen": {"fieldId": "dietary", "operator": "equals", "value": "other"}
+        },
+        {
+          "type": "toggle",
+          "id": "needs_accommodation",
+          "label": "I need accessibility accommodations"
+        },
+        {
+          "type": "text_field",
+          "id": "accommodation_details",
+          "label": "Please describe your needs",
+          "multiline": true,
+          "visibleWhen": {"fieldId": "needs_accommodation", "operator": "equals", "value": "true"}
+        },
+        {
+          "type": "checkbox",
+          "id": "code_of_conduct",
+          "label": "I agree to the event code of conduct",
+          "required": true
+        }
+      ]
+    }
+  ]
+}

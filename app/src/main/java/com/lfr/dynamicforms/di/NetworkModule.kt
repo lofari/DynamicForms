@@ -1,5 +1,6 @@
 package com.lfr.dynamicforms.di
 
+import com.lfr.dynamicforms.BuildConfig
 import com.lfr.dynamicforms.data.remote.FormApi
 import com.lfr.dynamicforms.data.remote.MockInterceptor
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
@@ -28,13 +29,17 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideOkHttpClient(): OkHttpClient = OkHttpClient.Builder()
-        .addInterceptor(MockInterceptor())
+        .apply {
+            if (BuildConfig.USE_MOCK) {
+                addInterceptor(MockInterceptor())
+            }
+        }
         .build()
 
     @Provides
     @Singleton
     fun provideRetrofit(client: OkHttpClient, json: Json): Retrofit = Retrofit.Builder()
-        .baseUrl("https://api.dynamicforms.mock/")
+        .baseUrl(BuildConfig.BASE_URL)
         .client(client)
         .addConverterFactory(json.asConverterFactory("application/json".toMediaType()))
         .build()

@@ -3,8 +3,13 @@
 /local.properties
 /.idea/
 .DS_Store
-/build
+**/build/
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Admin panel
+admin/node_modules/
+admin/dist/
+backend/src/main/resources/admin/

@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "DynamicForms"
 include(":app")
+include(":backend")
  
