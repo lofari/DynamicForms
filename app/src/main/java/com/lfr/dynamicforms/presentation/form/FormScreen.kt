@@ -39,8 +39,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.lfr.dynamicforms.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lfr.dynamicforms.domain.model.Form
 import com.lfr.dynamicforms.domain.model.FormElement
@@ -126,13 +128,13 @@ fun FormScreenContent(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text(state.currentPage?.title ?: state.form?.title ?: "Form") },
+                title = { Text(state.currentPage?.title ?: state.form?.title ?: stringResource(R.string.form_title_fallback)) },
                 navigationIcon = {
                     IconButton(onClick = {
                         if (!state.isFirstPage) onAction(FormAction.PrevPage)
                         else onNavigateBack()
                     }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
                     }
                 }
             )
@@ -145,7 +147,7 @@ fun FormScreenContent(
                     modifier = Modifier.fillMaxWidth()
                 )
                 Text(
-                    "Step ${state.currentPageIndex + 1} of ${state.totalPages}",
+                    stringResource(R.string.step_progress, state.currentPageIndex + 1, state.totalPages),
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp).testTag("progress_text")
                 )
@@ -164,7 +166,7 @@ fun FormScreenContent(
                             Spacer(Modifier.height(16.dp))
                             state.formId?.let { id ->
                                 Button(onClick = { onAction(FormAction.LoadForm(id)) }) {
-                                    Text("Retry")
+                                    Text(stringResource(R.string.retry))
                                 }
                             }
                         }
@@ -240,7 +242,7 @@ fun FormScreenContent(
                     ) {
                         if (!state.isFirstPage) {
                             OutlinedButton(onClick = { onAction(FormAction.PrevPage) }, modifier = Modifier.testTag("btn_back")) {
-                                Text("Back")
+                                Text(stringResource(R.string.back))
                             }
                         } else {
                             Spacer(Modifier)
@@ -256,11 +258,11 @@ fun FormScreenContent(
                                     CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
                                     Spacer(Modifier.width(8.dp))
                                 }
-                                Text("Submit")
+                                Text(stringResource(R.string.submit))
                             }
                         } else {
                             Button(onClick = { onAction(FormAction.NextPage) }, modifier = Modifier.testTag("btn_next")) {
-                                Text("Next")
+                                Text(stringResource(R.string.next))
                             }
                         }
                     }

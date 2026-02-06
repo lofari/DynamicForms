@@ -20,8 +20,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.lfr.dynamicforms.R
 import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 import com.lfr.dynamicforms.domain.model.RepeatingGroupElement
 import com.lfr.dynamicforms.domain.model.TextFieldElement
@@ -53,10 +55,10 @@ fun DynamicRepeatingGroup(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text("Item ${row + 1}", style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(R.string.repeating_item_label, row + 1), style = MaterialTheme.typography.labelLarge)
                         if (itemCount > element.minItems) {
                             IconButton(onClick = { onRemoveRow(row) }) {
-                                Icon(Icons.Default.Delete, "Remove Item ${row + 1}")
+                                Icon(Icons.Default.Delete, stringResource(R.string.remove_item_content_description, row + 1))
                             }
                         }
                     }
@@ -78,9 +80,9 @@ fun DynamicRepeatingGroup(
 
         if (itemCount < element.maxItems) {
             OutlinedButton(onClick = onAddRow, modifier = Modifier.padding(top = 8.dp)) {
-                Icon(Icons.Default.Add, "Add item")
+                Icon(Icons.Default.Add, stringResource(R.string.add_item_content_description))
                 Spacer(Modifier.width(4.dp))
-                Text("Add ${element.label}")
+                Text(stringResource(R.string.add_label, element.label))
             }
         }
     }

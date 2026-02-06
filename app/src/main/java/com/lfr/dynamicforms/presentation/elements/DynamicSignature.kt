@@ -31,6 +31,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.lfr.dynamicforms.R
 import com.lfr.dynamicforms.domain.model.SignatureElement
 import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 
@@ -45,6 +47,9 @@ fun DynamicSignature(
     val strokes = remember { mutableStateListOf<List<Offset>>() }
     val currentStroke = remember { mutableStateListOf<Offset>() }
 
+    val signaturePadNotSigned = stringResource(R.string.signature_pad_not_signed)
+    val signaturePadSigned = stringResource(R.string.signature_pad_signed)
+
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = requiredLabel(element.label, element.required),
@@ -56,7 +61,7 @@ fun DynamicSignature(
                 .height(150.dp)
                 .testTag("field_${element.id}")
                 .semantics {
-                    contentDescription = if (value.isBlank()) "Signature pad, not signed" else "Signature pad, signed"
+                    contentDescription = if (value.isBlank()) signaturePadNotSigned else signaturePadSigned
                 }
                 .border(1.dp, MaterialTheme.colorScheme.outline)
                 .background(MaterialTheme.colorScheme.surface),
@@ -113,7 +118,7 @@ fun DynamicSignature(
             }
 
             if (value.isBlank() && strokes.isEmpty()) {
-                Text("Draw your signature here", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(stringResource(R.string.signature_placeholder), color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         if (value.isNotBlank()) {
@@ -121,7 +126,7 @@ fun DynamicSignature(
                 strokes.clear()
                 currentStroke.clear()
                 onValueChange("")
-            }) { Text("Clear") }
+            }) { Text(stringResource(R.string.clear)) }
         }
         ErrorText(error)
     }

@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.lfr.dynamicforms.R
 import com.lfr.dynamicforms.domain.model.SliderElement
 import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 import kotlin.math.roundToInt
@@ -26,7 +28,7 @@ fun DynamicSlider(
     val steps = if (element.step > 0) ((element.max - element.min) / element.step).roundToInt() - 1 else 0
 
     Column(modifier = modifier.fillMaxWidth()) {
-        Text("${element.label}: ${currentValue.roundToInt()}", style = MaterialTheme.typography.bodyLarge)
+        Text(stringResource(R.string.slider_label_value, element.label, currentValue.roundToInt()), style = MaterialTheme.typography.bodyLarge)
         Slider(
             value = currentValue,
             onValueChange = { onValueChange(it.toString()) },

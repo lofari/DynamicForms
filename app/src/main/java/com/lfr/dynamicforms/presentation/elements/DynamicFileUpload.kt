@@ -16,6 +16,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.lfr.dynamicforms.R
 import com.lfr.dynamicforms.domain.model.FileUploadElement
 import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 
@@ -48,15 +50,16 @@ fun DynamicFileUpload(
             text = requiredLabel(element.label, element.required),
             style = MaterialTheme.typography.bodyLarge
         )
+        val chooseFileDescription = stringResource(R.string.choose_file_content_description, element.label)
         OutlinedButton(
             onClick = { launcher.launch("*/*") },
-            modifier = Modifier.semantics { contentDescription = "Choose file to upload for ${element.label}" }
+            modifier = Modifier.semantics { contentDescription = chooseFileDescription }
         ) {
-            Text(if (value.isBlank()) "Choose file" else value)
+            Text(if (value.isBlank()) stringResource(R.string.choose_file) else value)
         }
         if (element.allowedTypes.isNotEmpty()) {
             Text(
-                "Allowed: ${element.allowedTypes.joinToString(", ")}",
+                stringResource(R.string.allowed_types, element.allowedTypes.joinToString(", ")),
                 style = MaterialTheme.typography.bodySmall
             )
         }

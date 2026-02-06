@@ -33,8 +33,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
+import com.lfr.dynamicforms.R
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.lfr.dynamicforms.domain.model.FormSummary
@@ -60,7 +62,7 @@ fun FormListScreenContent(
 ) {
     Scaffold(
         modifier = Modifier.semantics { testTagsAsResourceId = true },
-        topBar = { TopAppBar(title = { Text("Dynamic Forms") }) }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.form_list_title)) }) }
     ) { padding ->
         when {
             state.isLoading -> {
@@ -78,7 +80,7 @@ fun FormListScreenContent(
                         Text(state.errorMessage, color = MaterialTheme.colorScheme.error)
                         Spacer(Modifier.height(16.dp))
                         Button(onClick = onRetry) {
-                            Text("Retry")
+                            Text(stringResource(R.string.retry))
                         }
                     }
                 }
@@ -128,16 +130,16 @@ fun FormListScreenContent(
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
                                     FormBadge(
-                                        text = "${form.pageCount} steps",
+                                        text = stringResource(R.string.steps_count, form.pageCount),
                                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                                     )
                                     FormBadge(
-                                        text = "${form.fieldCount} fields",
+                                        text = stringResource(R.string.fields_count, form.fieldCount),
                                         containerColor = MaterialTheme.colorScheme.surfaceVariant
                                     )
                                     if (hasDraft) {
                                         FormBadge(
-                                            text = "Resume",
+                                            text = stringResource(R.string.resume_badge),
                                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
                                             contentColor = MaterialTheme.colorScheme.onTertiaryContainer
                                         )

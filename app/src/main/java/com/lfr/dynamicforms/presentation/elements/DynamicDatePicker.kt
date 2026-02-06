@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.res.stringResource
+import com.lfr.dynamicforms.R
 import com.lfr.dynamicforms.domain.model.DatePickerElement
 import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 import java.text.SimpleDateFormat
@@ -71,10 +73,10 @@ fun DynamicDatePicker(
                         onValueChange(formatted)
                     }
                     showDialog = false
-                }) { Text("OK") }
+                }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { showDialog = false }) { Text(stringResource(R.string.cancel)) }
             }
         ) {
             DatePicker(state = datePickerState)

@@ -6,12 +6,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.lfr.dynamicforms.R
 import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 
+@Composable
 fun requiredLabel(label: String, required: Boolean): String =
-    if (required) "$label *" else label
+    if (required) stringResource(R.string.required_label_format, label) else label
 
 @Composable
 fun ErrorText(error: String?) {

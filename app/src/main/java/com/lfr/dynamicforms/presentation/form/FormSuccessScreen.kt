@@ -27,8 +27,10 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import android.content.res.Configuration
+import com.lfr.dynamicforms.R
 import com.lfr.dynamicforms.presentation.theme.DynamicFormsTheme
 import androidx.compose.material3.Surface
 
@@ -61,14 +63,14 @@ fun FormSuccessScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Success",
+                        contentDescription = stringResource(R.string.success_content_description),
                         modifier = Modifier.size(32.dp),
                         tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 }
                 Spacer(Modifier.height(16.dp))
                 Text(
-                    text = "Success!",
+                    text = stringResource(R.string.success_title),
                     style = MaterialTheme.typography.headlineMedium,
                     textAlign = TextAlign.Center
                 )
@@ -84,7 +86,7 @@ fun FormSuccessScreen(
                     onClick = onBackToList,
                     modifier = Modifier.fillMaxWidth().testTag("btn_back_to_forms")
                 ) {
-                    Text("Back to Forms")
+                    Text(stringResource(R.string.back_to_forms))
                 }
             }
         }

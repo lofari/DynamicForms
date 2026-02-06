@@ -1,7 +1,9 @@
 package com.lfr.dynamicforms.presentation.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
+import com.lfr.dynamicforms.R
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
@@ -32,7 +34,7 @@ fun AppNavHost() {
         composable<FormSuccessRoute> { backStackEntry ->
             val route = backStackEntry.toRoute<FormSuccessRoute>()
             FormSuccessScreen(
-                message = "Form submitted successfully",
+                message = stringResource(R.string.form_submitted_successfully),
                 onBackToList = {
                     navController.popBackStack(FormListRoute, inclusive = false)
                 }
