@@ -1,15 +1,30 @@
 package com.lfr.dynamicforms.presentation.elements
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
 import com.lfr.dynamicforms.domain.model.RepeatingGroupElement
+import com.lfr.dynamicforms.domain.model.TextFieldElement
 
 @Composable
 fun DynamicRepeatingGroup(
@@ -67,6 +82,31 @@ fun DynamicRepeatingGroup(
                 Spacer(Modifier.width(4.dp))
                 Text("Add ${element.label}")
             }
+        }
+    }
+}
+
+@Preview(group = "Form Elements", showBackground = true)
+@Composable
+private fun DynamicRepeatingGroupPreview() {
+    DynamicFormsTheme(dynamicColor = false) {
+        Column(Modifier.padding(16.dp)) {
+            DynamicRepeatingGroup(
+                element = RepeatingGroupElement(
+                    id = "contacts", label = "Emergency Contacts",
+                    minItems = 1, maxItems = 3,
+                    elements = listOf(
+                        TextFieldElement(id = "name", label = "Name", required = true),
+                        TextFieldElement(id = "phone", label = "Phone"),
+                    )
+                ),
+                values = mapOf("contacts[0].name" to "John Smith", "contacts[0].phone" to "555-0100"),
+                errors = emptyMap(),
+                itemCount = 2,
+                onValueChange = { _, _ -> },
+                onAddRow = {},
+                onRemoveRow = {},
+            )
         }
     }
 }

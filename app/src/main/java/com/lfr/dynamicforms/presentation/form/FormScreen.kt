@@ -1,11 +1,32 @@
 package com.lfr.dynamicforms.presentation.form
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -14,7 +35,49 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.lfr.dynamicforms.domain.model.Form
+import com.lfr.dynamicforms.domain.model.FormElement
+import com.lfr.dynamicforms.domain.model.Page
+import com.lfr.dynamicforms.domain.model.SectionHeaderElement
+import com.lfr.dynamicforms.domain.model.TextFieldElement
 import com.lfr.dynamicforms.presentation.elements.FormElementRenderer
+import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
+import androidx.compose.ui.tooling.preview.Preview
+
+/**
+ * Groups a flat list of form elements into sections, splitting at each [SectionHeaderElement].
+ * Elements that appear before the first section header are placed in a group with a null header.
+ */
+private data class SectionGroup(
+    val header: SectionHeaderElement?,
+    val elements: List<FormElement>
+)
+
+private fun groupElementsIntoSections(elements: List<FormElement>): List<SectionGroup> {
+    val groups = mutableListOf<SectionGroup>()
+    var currentHeader: SectionHeaderElement? = null
+    var currentElements = mutableListOf<FormElement>()
+
+    for (element in elements) {
+        if (element is SectionHeaderElement) {
+            // Flush the previous group (even if it has no elements, skip empty headerless groups)
+            if (currentHeader != null || currentElements.isNotEmpty()) {
+                groups.add(SectionGroup(currentHeader, currentElements))
+            }
+            currentHeader = element
+            currentElements = mutableListOf()
+        } else {
+            currentElements.add(element)
+        }
+    }
+
+    // Flush the last group
+    if (currentHeader != null || currentElements.isNotEmpty()) {
+        groups.add(SectionGroup(currentHeader, currentElements))
+    }
+
+    return groups
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,13 +103,27 @@ fun FormScreen(
         }
     }
 
+    FormScreenContent(
+        state = state,
+        onAction = viewModel::onAction,
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun FormScreenContent(
+    state: FormUiState,
+    onAction: (FormAction) -> Unit,
+    onNavigateBack: () -> Unit
+) {
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(state.currentPage?.title ?: state.form?.title ?: "Form") },
                 navigationIcon = {
                     IconButton(onClick = {
-                        if (!state.isFirstPage) viewModel.onAction(FormAction.PrevPage)
+                        if (!state.isFirstPage) onAction(FormAction.PrevPage)
                         else onNavigateBack()
                     }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
@@ -87,21 +164,56 @@ fun FormScreen(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        state.currentPage?.elements?.forEach { element ->
-                            FormElementRenderer(
-                                element = element,
-                                value = state.values[element.id] ?: "",
-                                error = state.errors[element.id],
-                                values = state.values,
-                                errors = state.errors,
-                                onValueChange = { viewModel.onAction(FormAction.UpdateField(element.id, it)) },
-                                onRepeatingGroupValueChange = { key, value ->
-                                    viewModel.onAction(FormAction.UpdateField(key, value))
-                                },
-                                onAddRow = { viewModel.onAction(FormAction.AddRepeatingRow(it)) },
-                                onRemoveRow = { id, row -> viewModel.onAction(FormAction.RemoveRepeatingRow(id, row)) },
-                                repeatingGroupCounts = state.repeatingGroupCounts
-                            )
+                        val sections = groupElementsIntoSections(
+                            state.currentPage?.elements ?: emptyList()
+                        )
+
+                        sections.forEach { section ->
+                            ElevatedCard(
+                                elevation = CardDefaults.elevatedCardElevation(),
+                                shape = MaterialTheme.shapes.medium,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    if (section.header != null) {
+                                        Column(
+                                            modifier = Modifier.padding(bottom = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = section.header.label,
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                            if (section.header.subtitle != null) {
+                                                Text(
+                                                    text = section.header.subtitle!!,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    section.elements.forEach { element ->
+                                        FormElementRenderer(
+                                            element = element,
+                                            value = state.values[element.id] ?: "",
+                                            error = state.errors[element.id],
+                                            values = state.values,
+                                            errors = state.errors,
+                                            onValueChange = { onAction(FormAction.UpdateField(element.id, it)) },
+                                            onRepeatingGroupValueChange = { key, value ->
+                                                onAction(FormAction.UpdateField(key, value))
+                                            },
+                                            onAddRow = { onAction(FormAction.AddRepeatingRow(it)) },
+                                            onRemoveRow = { id, row -> onAction(FormAction.RemoveRepeatingRow(id, row)) },
+                                            repeatingGroupCounts = state.repeatingGroupCounts
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -112,7 +224,7 @@ fun FormScreen(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         if (!state.isFirstPage) {
-                            OutlinedButton(onClick = { viewModel.onAction(FormAction.PrevPage) }) {
+                            OutlinedButton(onClick = { onAction(FormAction.PrevPage) }) {
                                 Text("Back")
                             }
                         } else {
@@ -121,7 +233,7 @@ fun FormScreen(
 
                         if (state.isLastPage) {
                             Button(
-                                onClick = { viewModel.onAction(FormAction.Submit) },
+                                onClick = { onAction(FormAction.Submit) },
                                 enabled = !state.isSubmitting
                             ) {
                                 if (state.isSubmitting) {
@@ -131,7 +243,7 @@ fun FormScreen(
                                 Text("Submit")
                             }
                         } else {
-                            Button(onClick = { viewModel.onAction(FormAction.NextPage) }) {
+                            Button(onClick = { onAction(FormAction.NextPage) }) {
                                 Text("Next")
                             }
                         }
@@ -139,5 +251,29 @@ fun FormScreen(
                 }
             }
         }
+    }
+}
+
+@Preview(name = "Form - Loaded", showBackground = true)
+@Composable
+private fun FormScreenContentPreview() {
+    val samplePage = Page(
+        pageId = "p1",
+        title = "Personal Information",
+        elements = listOf(
+            SectionHeaderElement(id = "sh1", label = "Contact Details", subtitle = "Fill in your details"),
+            TextFieldElement(id = "name", label = "Full Name", required = true),
+            TextFieldElement(id = "email", label = "Email", required = true),
+        )
+    )
+    val state = FormUiState(
+        isLoading = false,
+        form = Form(formId = "f1", title = "Registration", pages = listOf(samplePage, samplePage)),
+        currentPageIndex = 0,
+        values = mapOf("name" to "Jane Doe"),
+        errors = mapOf("email" to "Email is required"),
+    )
+    DynamicFormsTheme(dynamicColor = false) {
+        FormScreenContent(state = state, onAction = {}, onNavigateBack = {})
     }
 }

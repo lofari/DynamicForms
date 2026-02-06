@@ -2,14 +2,17 @@ package com.lfr.dynamicforms.presentation.elements
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.NumberFieldElement
+import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
 
 @Composable
 fun DynamicNumberField(
@@ -27,13 +30,26 @@ fun DynamicNumberField(
                     onValueChange(newValue)
                 }
             },
-            label = { Text(if (element.required) "${element.label} *" else element.label) },
+            label = { Text(requiredLabel(element.label, element.required)) },
             isError = error != null,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
-        if (error != null) {
-            Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        ErrorText(error)
+    }
+}
+
+@Preview(group = "Form Elements", showBackground = true)
+@Composable
+private fun DynamicNumberFieldPreview() {
+    DynamicFormsTheme(dynamicColor = false) {
+        Column(Modifier.padding(16.dp)) {
+            DynamicNumberField(
+                element = NumberFieldElement(id = "qty", label = "Quantity", required = true),
+                value = "42",
+                error = null,
+                onValueChange = {}
+            )
         }
     }
 }

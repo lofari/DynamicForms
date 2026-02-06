@@ -20,7 +20,9 @@ data class Page(
 data class FormSummary(
     val formId: String,
     val title: String,
-    val description: String = ""
+    val description: String = "",
+    val pageCount: Int = 0,
+    val fieldCount: Int = 0
 )
 
 @Serializable

@@ -3,13 +3,18 @@ package com.lfr.dynamicforms.presentation.elements
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.MultiSelectElement
+import com.lfr.dynamicforms.domain.model.SelectOption
+import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
 
 @Composable
 fun DynamicMultiSelect(
@@ -23,7 +28,7 @@ fun DynamicMultiSelect(
 
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
-            text = if (element.required) "${element.label} *" else element.label,
+            text = requiredLabel(element.label, element.required),
             style = MaterialTheme.typography.bodyLarge
         )
         element.options.forEach { option ->
@@ -38,8 +43,24 @@ fun DynamicMultiSelect(
                 Text(option.label)
             }
         }
-        if (error != null) {
-            Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+        ErrorText(error)
+    }
+}
+
+@Preview(group = "Form Elements", showBackground = true)
+@Composable
+private fun DynamicMultiSelectPreview() {
+    DynamicFormsTheme(dynamicColor = false) {
+        Column(Modifier.padding(16.dp)) {
+            DynamicMultiSelect(
+                element = MultiSelectElement(
+                    id = "skills", label = "Skills",
+                    options = listOf(SelectOption("kt", "Kotlin"), SelectOption("java", "Java"), SelectOption("py", "Python"))
+                ),
+                value = "kt,py",
+                error = null,
+                onValueChange = {}
+            )
         }
     }
 }

@@ -41,8 +41,8 @@ class MockInterceptor : Interceptor {
 
 private val FORM_LIST_JSON = """
 [
-  {"formId":"registration_v1","title":"User Registration","description":"Register a new account"},
-  {"formId":"feedback_v1","title":"Feedback Form","description":"Share your feedback"}
+  {"formId":"registration_v1","title":"User Registration","description":"Register a new account","pageCount":3,"fieldCount":12},
+  {"formId":"feedback_v1","title":"Feedback Form","description":"Share your feedback","pageCount":1,"fieldCount":3}
 ]
 """.trimIndent()
 
@@ -170,13 +170,6 @@ private val REGISTRATION_FORM_JSON = """
           "id": "upload_info",
           "label": "Attachments",
           "text": "Upload your resume and sign below."
-        },
-        {
-          "type": "file_upload",
-          "id": "resume",
-          "label": "Upload Resume",
-          "allowedTypes": ["pdf", "doc", "docx"],
-          "maxFileSize": 5242880
         },
         {
           "type": "signature",

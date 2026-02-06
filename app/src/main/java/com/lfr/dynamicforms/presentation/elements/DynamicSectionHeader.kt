@@ -7,8 +7,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.SectionHeaderElement
+import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
 
 @Composable
 fun DynamicSectionHeader(
@@ -20,5 +22,18 @@ fun DynamicSectionHeader(
         if (!element.subtitle.isNullOrBlank()) {
             Text(element.subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
+    }
+}
+
+@Preview(group = "Form Elements", showBackground = true)
+@Composable
+private fun DynamicSectionHeaderPreview() {
+    DynamicFormsTheme(dynamicColor = false) {
+        DynamicSectionHeader(
+            element = SectionHeaderElement(
+                id = "sh1", label = "Personal Information",
+                subtitle = "Please provide your contact details"
+            )
+        )
     }
 }

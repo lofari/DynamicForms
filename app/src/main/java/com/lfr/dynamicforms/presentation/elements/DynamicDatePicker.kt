@@ -1,11 +1,28 @@
 package com.lfr.dynamicforms.presentation.elements
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.DatePickerElement
+import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -27,22 +44,20 @@ fun DynamicDatePicker(
             value = value,
             onValueChange = {},
             readOnly = true,
-            label = { Text(if (element.required) "${element.label} *" else element.label) },
+            label = { Text(requiredLabel(element.label, element.required)) },
             isError = error != null,
             modifier = Modifier.fillMaxWidth(),
-            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }.also {
+            interactionSource = remember { MutableInteractionSource() }.also {
                 LaunchedEffect(it) {
                     it.interactions.collect { interaction ->
-                        if (interaction is androidx.compose.foundation.interaction.PressInteraction.Release) {
+                        if (interaction is PressInteraction.Release) {
                             showDialog = true
                         }
                     }
                 }
             }
         )
-        if (error != null) {
-            Text(error, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-        }
+        ErrorText(error)
     }
 
     if (showDialog) {
@@ -62,6 +77,21 @@ fun DynamicDatePicker(
             }
         ) {
             DatePicker(state = datePickerState)
+        }
+    }
+}
+
+@Preview(group = "Form Elements", showBackground = true)
+@Composable
+private fun DynamicDatePickerPreview() {
+    DynamicFormsTheme(dynamicColor = false) {
+        Column(Modifier.padding(16.dp)) {
+            DynamicDatePicker(
+                element = DatePickerElement(id = "start", label = "Start Date", required = true),
+                value = "2026-01-15",
+                error = null,
+                onValueChange = {}
+            )
         }
     }
 }

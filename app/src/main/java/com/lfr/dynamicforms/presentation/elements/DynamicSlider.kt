@@ -2,12 +2,16 @@ package com.lfr.dynamicforms.presentation.elements
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.SliderElement
+import com.lfr.dynamicforms.ui.theme.DynamicFormsTheme
 import kotlin.math.roundToInt
 
 @Composable
@@ -28,5 +32,19 @@ fun DynamicSlider(
             valueRange = element.min..element.max,
             steps = steps.coerceAtLeast(0)
         )
+    }
+}
+
+@Preview(group = "Form Elements", showBackground = true)
+@Composable
+private fun DynamicSliderPreview() {
+    DynamicFormsTheme(dynamicColor = false) {
+        Column(Modifier.padding(16.dp)) {
+            DynamicSlider(
+                element = SliderElement(id = "rating", label = "Rating", min = 0f, max = 10f, step = 1f),
+                value = "7",
+                onValueChange = {}
+            )
+        }
     }
 }
