@@ -1,0 +1,17 @@
+appId: com.lfr.dynamicforms
+name: "Registration validation errors"
+tags:
+  - registration
+  - validation
+---
+- runFlow: ../subflows/open-registration-form.yaml
+
+# Try to go next without filling required fields
+- tapOn:
+    id: "btn_next"
+
+# Validation errors should appear for required fields
+- scrollUntilVisible:
+    element:
+      text: "Full Name is required"
+    direction: DOWN

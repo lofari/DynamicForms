@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.RadioElement
@@ -25,7 +26,7 @@ fun DynamicRadioGroup(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(modifier = modifier.fillMaxWidth().testTag("field_${element.id}")) {
         Text(
             text = requiredLabel(element.label, element.required),
             style = MaterialTheme.typography.bodyLarge

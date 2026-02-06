@@ -7,6 +7,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.TextFieldElement
@@ -28,7 +29,7 @@ fun DynamicTextField(
             isError = error != null,
             minLines = if (element.multiline) 3 else 1,
             maxLines = if (element.multiline) 6 else 1,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth().testTag("field_${element.id}")
         )
         ErrorText(error)
     }

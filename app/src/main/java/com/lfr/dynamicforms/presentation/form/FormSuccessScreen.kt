@@ -22,6 +22,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -35,7 +38,7 @@ fun FormSuccessScreen(
     onBackToList: () -> Unit
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().semantics { testTagsAsResourceId = true },
         contentAlignment = Alignment.Center
     ) {
         ElevatedCard(
@@ -79,7 +82,7 @@ fun FormSuccessScreen(
                 Spacer(Modifier.height(24.dp))
                 Button(
                     onClick = onBackToList,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth().testTag("btn_back_to_forms")
                 ) {
                     Text("Back to Forms")
                 }

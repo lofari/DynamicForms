@@ -1,0 +1,7 @@
+flows:
+  - "form-list/*"
+  - "registration/*"
+  - "feedback/*"
+
+excludeTags:
+  - subflow

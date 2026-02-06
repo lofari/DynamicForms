@@ -1,0 +1,83 @@
+appId: com.lfr.dynamicforms
+name: "Registration form happy path"
+tags:
+  - smoke
+  - registration
+---
+# Launch and open registration form
+- runFlow: ../subflows/open-registration-form.yaml
+
+# Page 1: Personal Info
+- assertVisible: "Step 1 of 3"
+- assertVisible: "Personal Information"
+- tapOn:
+    id: "field_full_name"
+- inputText: "John Doe"
+- hideKeyboard
+- tapOn:
+    id: "field_age"
+- inputText: "30"
+- hideKeyboard
+# Select role from dropdown
+- tapOn:
+    id: "field_role"
+- tapOn: "Developer"
+# Go to next page
+- tapOn:
+    id: "btn_next"
+
+# Page 2: Preferences
+- assertVisible: "Step 2 of 3"
+# Toggle is on by default, leave it
+# Tap on the experience slider to set a value
+- scrollUntilVisible:
+    element:
+      id: "field_experience"
+    direction: DOWN
+- tapOn:
+    id: "field_experience"
+# Select radio option for contact preference
+- scrollUntilVisible:
+    element:
+      id: "field_contact_pref"
+    direction: DOWN
+- tapOn: "Email"
+# Check terms checkbox
+- scrollUntilVisible:
+    element:
+      id: "field_terms"
+    direction: DOWN
+- tapOn:
+    id: "field_terms"
+# Go to next page
+- scrollUntilVisible:
+    element:
+      id: "btn_next"
+    direction: DOWN
+- tapOn:
+    id: "btn_next"
+
+# Page 3: Additional
+- assertVisible: "Step 3 of 3"
+# Tap the signature pad
+- scrollUntilVisible:
+    element:
+      id: "field_signature"
+    direction: DOWN
+- tapOn:
+    id: "field_signature"
+# Submit the form
+- scrollUntilVisible:
+    element:
+      id: "btn_submit"
+    direction: DOWN
+- tapOn:
+    id: "btn_submit"
+
+# Verify success
+- assertVisible: "Success!"
+- assertVisible: "Form submitted successfully"
+# Go back to form list
+- tapOn:
+    id: "btn_back_to_forms"
+- assertVisible: "Dynamic Forms"

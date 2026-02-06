@@ -30,6 +30,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,31 +58,41 @@ fun FormListScreenContent(
     onFormClick: (String) -> Unit
 ) {
     Scaffold(
+        modifier = Modifier.semantics { testTagsAsResourceId = true },
         topBar = { TopAppBar(title = { Text("Dynamic Forms") }) }
     ) { padding ->
         when {
             state.isLoading -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Box(Modifier
+                    .fillMaxSize()
+                    .padding(padding), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
                 }
             }
             state.errorMessage != null -> {
-                Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
+                Box(Modifier
+                    .fillMaxSize()
+                    .padding(padding), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(state.errorMessage!!, color = MaterialTheme.colorScheme.error)
+                        Text(state.errorMessage, color = MaterialTheme.colorScheme.error)
                     }
                 }
             }
             else -> {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(padding),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(state.forms, key = { it.formId }) { form ->
                         val hasDraft = form.formId in state.drafts
                         Card(
-                            modifier = Modifier.fillMaxWidth().clickable { onFormClick(form.formId) }
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("form_card_${form.formId}")
+                                .clickable { onFormClick(form.formId) }
                         ) {
                             Column(modifier = Modifier.padding(16.dp)) {
                                 Row(

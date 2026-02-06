@@ -1,0 +1,50 @@
+appId: com.lfr.dynamicforms
+name: "Registration page navigation"
+tags:
+  - registration
+  - navigation
+---
+- runFlow: ../subflows/open-registration-form.yaml
+
+# Verify page 1
+- assertVisible: "Step 1 of 3"
+- assertVisible: "Personal Information"
+
+# Fill required fields to pass validation
+- tapOn:
+    id: "field_full_name"
+- inputText: "Jane Smith"
+- hideKeyboard
+- tapOn:
+    id: "field_age"
+- inputText: "25"
+- hideKeyboard
+- tapOn:
+    id: "field_role"
+- tapOn: "Designer"
+
+# Navigate to page 2
+- tapOn:
+    id: "btn_next"
+- assertVisible: "Step 2 of 3"
+
+# Fill required fields on page 2
+- tapOn: "Phone"
+- tapOn:
+    id: "field_terms"
+
+# Navigate to page 3
+- tapOn:
+    id: "btn_next"
+- assertVisible: "Step 3 of 3"
+
+# Navigate back to page 2
+- tapOn:
+    id: "btn_back"
+- assertVisible: "Step 2 of 3"
+
+# Navigate back to page 1
+- tapOn:
+    id: "btn_back"
+- assertVisible: "Step 1 of 3"
+- assertVisible: "Personal Information"

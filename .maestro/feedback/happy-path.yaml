@@ -1,0 +1,31 @@
+appId: com.lfr.dynamicforms
+name: "Feedback form happy path"
+tags:
+  - smoke
+  - feedback
+---
+- runFlow: ../subflows/launch-app.yaml
+
+# Tap on Feedback Form
+- tapOn: "Feedback Form"
+
+# Verify we're on the feedback form
+- assertVisible: "We value your feedback"
+
+# Tap on the rating slider to set a value
+- tapOn:
+    id: "field_rating"
+
+# Select recommendation radio
+- tapOn: "Yes"
+
+# Submit
+- tapOn:
+    id: "btn_submit"
+
+# Verify success
+- assertVisible: "Success!"
+- assertVisible: "Form submitted successfully"
+- tapOn:
+    id: "btn_back_to_forms"
+- assertVisible: "Dynamic Forms"

@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.DatePickerElement
@@ -46,7 +47,7 @@ fun DynamicDatePicker(
             readOnly = true,
             label = { Text(requiredLabel(element.label, element.required)) },
             isError = error != null,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().testTag("field_${element.id}"),
             interactionSource = remember { MutableInteractionSource() }.also {
                 LaunchedEffect(it) {
                     it.interactions.collect { interaction ->

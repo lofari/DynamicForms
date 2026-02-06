@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +26,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.SignatureElement
@@ -50,6 +52,7 @@ fun DynamicSignature(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
+                .testTag("field_${element.id}")
                 .border(1.dp, MaterialTheme.colorScheme.outline)
                 .background(MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center
@@ -57,6 +60,12 @@ fun DynamicSignature(
             Canvas(
                 modifier = Modifier
                     .fillMaxSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            strokes.add(listOf(offset))
+                            onValueChange("signed")
+                        }
+                    }
                     .pointerInput(Unit) {
                         detectDragGestures(
                             onDragStart = { offset ->

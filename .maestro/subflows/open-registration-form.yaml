@@ -1,0 +1,6 @@
+appId: com.lfr.dynamicforms
+tags:
+  - subflow
+---
+- runFlow: ../subflows/launch-app.yaml
+- tapOn: "User Registration"

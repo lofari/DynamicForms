@@ -8,6 +8,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.SliderElement
@@ -30,7 +31,8 @@ fun DynamicSlider(
             value = currentValue,
             onValueChange = { onValueChange(it.toString()) },
             valueRange = element.min..element.max,
-            steps = steps.coerceAtLeast(0)
+            steps = steps.coerceAtLeast(0),
+            modifier = Modifier.testTag("field_${element.id}")
         )
     }
 }

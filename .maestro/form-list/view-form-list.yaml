@@ -1,0 +1,16 @@
+appId: com.lfr.dynamicforms
+name: "View form list"
+tags:
+  - smoke
+  - form-list
+---
+- runFlow: ../subflows/launch-app.yaml
+- assertVisible: "Dynamic Forms"
+- assertVisible: "User Registration"
+- assertVisible: "Register a new account"
+- assertVisible: "3 steps"
+- assertVisible: "12 fields"
+- assertVisible: "Feedback Form"
+- assertVisible: "Share your feedback"
+- assertVisible: "1 steps"
+- assertVisible: "3 fields"
