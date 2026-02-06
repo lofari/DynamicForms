@@ -21,5 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "DynamicForms"
 include(":app")
-include(":backend")
+if (providers.gradleProperty("includeBackend").getOrElse("false").toBoolean()) {
+    include(":backend")
+}
  
