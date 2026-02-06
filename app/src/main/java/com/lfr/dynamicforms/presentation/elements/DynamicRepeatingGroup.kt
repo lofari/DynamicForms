@@ -56,7 +56,7 @@ fun DynamicRepeatingGroup(
                         Text("Item ${row + 1}", style = MaterialTheme.typography.labelLarge)
                         if (itemCount > element.minItems) {
                             IconButton(onClick = { onRemoveRow(row) }) {
-                                Icon(Icons.Default.Delete, "Remove")
+                                Icon(Icons.Default.Delete, "Remove Item ${row + 1}")
                             }
                         }
                     }
@@ -78,7 +78,7 @@ fun DynamicRepeatingGroup(
 
         if (itemCount < element.maxItems) {
             OutlinedButton(onClick = onAddRow, modifier = Modifier.padding(top = 8.dp)) {
-                Icon(Icons.Default.Add, null)
+                Icon(Icons.Default.Add, "Add item")
                 Spacer(Modifier.width(4.dp))
                 Text("Add ${element.label}")
             }

@@ -12,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.FileUploadElement
@@ -46,7 +48,10 @@ fun DynamicFileUpload(
             text = requiredLabel(element.label, element.required),
             style = MaterialTheme.typography.bodyLarge
         )
-        OutlinedButton(onClick = { launcher.launch("*/*") }) {
+        OutlinedButton(
+            onClick = { launcher.launch("*/*") },
+            modifier = Modifier.semantics { contentDescription = "Choose file to upload for ${element.label}" }
+        ) {
             Text(if (value.isBlank()) "Choose file" else value)
         }
         if (element.allowedTypes.isNotEmpty()) {

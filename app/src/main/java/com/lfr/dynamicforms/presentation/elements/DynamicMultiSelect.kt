@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.MultiSelectElement
@@ -33,7 +34,10 @@ fun DynamicMultiSelect(
             style = MaterialTheme.typography.bodyLarge
         )
         element.options.forEach { option ->
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.semantics(mergeDescendants = true) {}
+            ) {
                 Checkbox(
                     checked = option.value in selected,
                     onCheckedChange = { checked ->

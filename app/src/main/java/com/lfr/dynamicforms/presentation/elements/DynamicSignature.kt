@@ -27,6 +27,8 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.SignatureElement
@@ -53,6 +55,9 @@ fun DynamicSignature(
                 .fillMaxWidth()
                 .height(150.dp)
                 .testTag("field_${element.id}")
+                .semantics {
+                    contentDescription = if (value.isBlank()) "Signature pad, not signed" else "Signature pad, signed"
+                }
                 .border(1.dp, MaterialTheme.colorScheme.outline)
                 .background(MaterialTheme.colorScheme.surface),
             contentAlignment = Alignment.Center
