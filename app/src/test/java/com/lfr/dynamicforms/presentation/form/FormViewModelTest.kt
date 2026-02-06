@@ -98,7 +98,7 @@ class FormViewModelTest {
 
         val state = vm.state.value
         assertFalse(state.isLoading)
-        assertEquals("Oops", state.errorMessage)
+        assertEquals("Something went wrong. Please try again.", state.errorMessage)
     }
 
     // --- UpdateField tests ---
@@ -248,7 +248,7 @@ class FormViewModelTest {
             vm.onAction(FormAction.Submit)
             val effect = awaitItem()
             assertTrue(effect is FormEffect.ShowError)
-            assertEquals("Network failure", (effect as FormEffect.ShowError).message)
+            assertEquals("Something went wrong. Please try again.", (effect as FormEffect.ShowError).message)
             cancelAndIgnoreRemainingEvents()
         }
     }

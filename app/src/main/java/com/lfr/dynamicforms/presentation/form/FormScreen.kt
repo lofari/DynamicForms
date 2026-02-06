@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,9 +28,12 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -91,6 +95,7 @@ fun FormScreen(
     viewModel: FormViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     LaunchedEffect(formId) {
         viewModel.onAction(FormAction.LoadForm(formId))
@@ -100,7 +105,9 @@ fun FormScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is FormEffect.NavigateToSuccess -> onNavigateToSuccess(effect.formId, effect.message)
-                is FormEffect.ShowError -> { /* handled via snackbar or state */ }
+                is FormEffect.ShowError -> {
+                    snackbarHostState.showSnackbar(effect.message)
+                }
                 is FormEffect.DraftSaved -> { }
             }
         }
@@ -109,7 +116,8 @@ fun FormScreen(
     FormScreenContent(
         state = state,
         onAction = viewModel::onAction,
-        onNavigateBack = onNavigateBack
+        onNavigateBack = onNavigateBack,
+        snackbarHostState = snackbarHostState
     )
 }
 
@@ -118,10 +126,12 @@ fun FormScreen(
 fun FormScreenContent(
     state: FormUiState,
     onAction: (FormAction) -> Unit,
-    onNavigateBack: () -> Unit
+    onNavigateBack: () -> Unit,
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     Scaffold(
         modifier = Modifier.semantics { testTagsAsResourceId = true },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text(state.currentPage?.title ?: state.form?.title ?: "Form") },
@@ -157,7 +167,15 @@ fun FormScreenContent(
                 }
                 state.errorMessage != null -> {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(state.errorMessage!!, color = MaterialTheme.colorScheme.error)
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(state.errorMessage, color = MaterialTheme.colorScheme.error)
+                            Spacer(Modifier.height(16.dp))
+                            state.formId?.let { id ->
+                                Button(onClick = { onAction(FormAction.LoadForm(id)) }) {
+                                    Text("Retry")
+                                }
+                            }
+                        }
                     }
                 }
                 else -> {

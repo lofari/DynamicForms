@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.lfr.dynamicforms.presentation.util.toUserMessage
 import javax.inject.Inject
 
 @HiltViewModel
@@ -44,7 +45,7 @@ class FormViewModel @Inject constructor(
 
     private fun loadForm(formId: String) {
         viewModelScope.launch {
-            _state.update { it.copy(isLoading = true, errorMessage = null) }
+            _state.update { it.copy(isLoading = true, errorMessage = null, formId = formId) }
             try {
                 val result = getForm(formId)
                 val groupCounts = mutableMapOf<String, Int>()
@@ -65,7 +66,7 @@ class FormViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, errorMessage = e.message ?: "Failed to load form") }
+                _state.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
             }
         }
     }
@@ -127,7 +128,7 @@ class FormViewModel @Inject constructor(
                 }
             } catch (e: Exception) {
                 _state.update { it.copy(isSubmitting = false) }
-                _effect.send(FormEffect.ShowError(e.message ?: "Submission failed"))
+                _effect.send(FormEffect.ShowError(e.toUserMessage()))
             }
         }
     }

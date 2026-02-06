@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.lfr.dynamicforms.presentation.util.toUserMessage
 import javax.inject.Inject
 
 data class FormListState(
@@ -43,7 +44,7 @@ class FormListViewModel @Inject constructor(
                 val drafts = draftRepository.getFormIdsWithDrafts().toSet()
                 _state.update { it.copy(isLoading = false, forms = forms, drafts = drafts) }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, errorMessage = e.message ?: "Failed to load forms") }
+                _state.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
             }
         }
     }

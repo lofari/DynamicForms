@@ -48,14 +48,15 @@ fun FormListScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    FormListScreenContent(state = state, onFormClick = onFormClick)
+    FormListScreenContent(state = state, onFormClick = onFormClick, onRetry = { viewModel.refresh() })
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FormListScreenContent(
     state: FormListState,
-    onFormClick: (String) -> Unit
+    onFormClick: (String) -> Unit,
+    onRetry: () -> Unit = {}
 ) {
     Scaffold(
         modifier = Modifier.semantics { testTagsAsResourceId = true },
@@ -75,6 +76,10 @@ fun FormListScreenContent(
                     .padding(padding), contentAlignment = Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(state.errorMessage, color = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.height(16.dp))
+                        Button(onClick = onRetry) {
+                            Text("Retry")
+                        }
                     }
                 }
             }

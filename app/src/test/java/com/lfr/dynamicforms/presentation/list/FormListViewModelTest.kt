@@ -52,7 +52,7 @@ class FormListViewModelTest {
 
         val state = vm.state.value
         assertFalse(state.isLoading)
-        assertEquals("Network error", state.errorMessage)
+        assertEquals("Something went wrong. Please try again.", state.errorMessage)
         assertTrue(state.forms.isEmpty())
     }
 

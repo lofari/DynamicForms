@@ -4,6 +4,7 @@ import com.lfr.dynamicforms.domain.model.Form
 
 data class FormUiState(
     val isLoading: Boolean = true,
+    val formId: String? = null,
     val form: Form? = null,
     val currentPageIndex: Int = 0,
     val values: Map<String, String> = emptyMap(),
