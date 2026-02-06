@@ -37,7 +37,7 @@ class FormViewModelTest {
     private val saveDraft = mockk<SaveDraftUseCase>(relaxUnitFun = true)
     private val submitForm = mockk<SubmitFormUseCase>()
     private val validatePage = mockk<ValidatePageUseCase>()
-    private val evaluateVisibility = mockk<EvaluateVisibilityUseCase>()
+    private val evaluateVisibility = mockk<EvaluateVisibilityUseCase>(relaxed = true)
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
         FormViewModel(savedStateHandle, getForm, saveDraft, submitForm, validatePage, evaluateVisibility)

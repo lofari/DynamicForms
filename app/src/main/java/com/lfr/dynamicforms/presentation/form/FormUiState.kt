@@ -10,6 +10,7 @@ data class FormUiState(
     val values: Map<String, String> = emptyMap(),
     val errors: Map<String, String> = emptyMap(),
     val repeatingGroupCounts: Map<String, Int> = emptyMap(),
+    val visibleElementIds: Set<String> = emptySet(),
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null
 ) {

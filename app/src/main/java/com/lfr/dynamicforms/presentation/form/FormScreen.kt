@@ -178,9 +178,10 @@ fun FormScreenContent(
                             .padding(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        val sections = groupElementsIntoSections(
-                            state.currentPage?.elements ?: emptyList()
-                        )
+                        val visibleElements = (state.currentPage?.elements ?: emptyList()).filter {
+                            state.visibleElementIds.isEmpty() || it.id in state.visibleElementIds
+                        }
+                        val sections = groupElementsIntoSections(visibleElements)
 
                         sections.forEach { section ->
                             ElevatedCard(

@@ -3,6 +3,7 @@ package com.lfr.dynamicforms.presentation.form
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.lfr.dynamicforms.domain.model.Form
 import com.lfr.dynamicforms.domain.model.RepeatingGroupElement
 import com.lfr.dynamicforms.domain.usecase.*
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +13,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.lfr.dynamicforms.presentation.util.toUserMessage
 import javax.inject.Inject
@@ -31,6 +34,8 @@ class FormViewModel @Inject constructor(
 
     private val _effect = Channel<FormEffect>(Channel.BUFFERED)
     val effect = _effect.receiveAsFlow()
+
+    private var draftDebounceJob: Job? = null
 
     init {
         val formId = savedStateHandle.get<String>("formId")
@@ -63,13 +68,15 @@ class FormViewModel @Inject constructor(
                         }
                     }
                 }
+                val visibleIds = computeVisibleIds(result.form, result.initialValues)
                 _state.update {
                     it.copy(
                         isLoading = false,
                         form = result.form,
                         values = result.initialValues,
                         currentPageIndex = result.initialPageIndex,
-                        repeatingGroupCounts = groupCounts
+                        repeatingGroupCounts = groupCounts,
+                        visibleElementIds = visibleIds
                     )
                 }
             } catch (e: Exception) {
@@ -82,8 +89,17 @@ class FormViewModel @Inject constructor(
         _state.update { current ->
             val newValues = current.values + (fieldId to value)
             val newErrors = current.errors - fieldId
-            current.copy(values = newValues, errors = newErrors)
+            val visibleIds = computeVisibleIds(current.form, newValues)
+            current.copy(values = newValues, errors = newErrors, visibleElementIds = visibleIds)
         }
+        scheduleDraftSave()
+    }
+
+    private fun computeVisibleIds(form: Form?, values: Map<String, String>): Set<String> {
+        if (form == null) return emptySet()
+        return form.pages.flatMap { page ->
+            evaluateVisibility.getVisibleElements(page, values).map { it.id }
+        }.toSet()
     }
 
     private fun nextPage() {
@@ -138,6 +154,19 @@ class FormViewModel @Inject constructor(
                 _effect.send(FormEffect.ShowError(e.toUserMessage()))
             }
         }
+    }
+
+    private fun scheduleDraftSave() {
+        draftDebounceJob?.cancel()
+        draftDebounceJob = viewModelScope.launch {
+            delay(2000L)
+            saveDraftNow()
+        }
+    }
+
+    override fun onCleared() {
+        draftDebounceJob?.cancel()
+        saveDraftNow()
     }
 
     private fun saveDraftNow() {
