@@ -39,7 +39,7 @@ class ValidatePageUseCase @Inject constructor(
 
     private fun validateElement(element: FormElement, value: String): String? {
         if (element.required && value.isBlank()) {
-            return "${element.label} is required"
+            return ValidationMessages.required(element.label)
         }
         if (value.isBlank()) return null
 
@@ -54,25 +54,30 @@ class ValidatePageUseCase @Inject constructor(
     private fun validateText(value: String, validation: TextValidation?): String? {
         validation ?: return null
         if (validation.minLength != null && value.length < validation.minLength) {
-            return validation.errorMessage ?: "Minimum ${validation.minLength} characters"
+            return validation.errorMessage ?: ValidationMessages.minLength(validation.minLength)
         }
         if (validation.maxLength != null && value.length > validation.maxLength) {
-            return validation.errorMessage ?: "Maximum ${validation.maxLength} characters"
+            return validation.errorMessage ?: ValidationMessages.maxLength(validation.maxLength)
         }
-        if (validation.pattern != null && !Regex(validation.pattern).matches(value)) {
-            return validation.errorMessage ?: "Invalid format"
+        if (validation.pattern != null) {
+            val matches = try {
+                Regex(validation.pattern).matches(value)
+            } catch (_: Exception) {
+                true // treat invalid pattern as no constraint
+            }
+            if (!matches) return validation.errorMessage ?: ValidationMessages.INVALID_FORMAT
         }
         return null
     }
 
     private fun validateNumber(value: String, validation: NumberValidation?): String? {
-        val number = value.toDoubleOrNull() ?: return "Must be a number"
+        val number = value.toDoubleOrNull() ?: return ValidationMessages.MUST_BE_NUMBER
         validation ?: return null
         if (validation.min != null && number < validation.min) {
-            return validation.errorMessage ?: "Minimum value is ${validation.min}"
+            return validation.errorMessage ?: ValidationMessages.minValue(validation.min)
         }
         if (validation.max != null && number > validation.max) {
-            return validation.errorMessage ?: "Maximum value is ${validation.max}"
+            return validation.errorMessage ?: ValidationMessages.maxValue(validation.max)
         }
         return null
     }
@@ -81,10 +86,10 @@ class ValidatePageUseCase @Inject constructor(
         validation ?: return null
         val selections = if (value.isBlank()) 0 else value.split(",").size
         if (validation.minSelections != null && selections < validation.minSelections) {
-            return validation.errorMessage ?: "Select at least ${validation.minSelections}"
+            return validation.errorMessage ?: ValidationMessages.minSelections(validation.minSelections)
         }
         if (validation.maxSelections != null && selections > validation.maxSelections) {
-            return validation.errorMessage ?: "Select at most ${validation.maxSelections}"
+            return validation.errorMessage ?: ValidationMessages.maxSelections(validation.maxSelections)
         }
         return null
     }

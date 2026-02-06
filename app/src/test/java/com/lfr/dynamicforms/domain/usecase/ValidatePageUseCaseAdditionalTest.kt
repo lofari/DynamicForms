@@ -101,6 +101,30 @@ class ValidatePageUseCaseAdditionalTest {
     }
 
     @Test
+    fun `invalid regex pattern does not crash validation`() {
+        val page = Page("p1", "Page", listOf(
+            TextFieldElement(
+                id = "code", label = "Code",
+                validation = TextValidation(pattern = "[invalid(")
+            )
+        ))
+        val errors = useCase.validate(page, mapOf("code" to "anything"))
+        assertTrue("Invalid regex should not produce errors", errors.isEmpty())
+    }
+
+    @Test
+    fun `invalid regex pattern with custom errorMessage does not crash`() {
+        val page = Page("p1", "Page", listOf(
+            TextFieldElement(
+                id = "code", label = "Code",
+                validation = TextValidation(pattern = "*bad+", errorMessage = "Custom error")
+            )
+        ))
+        val errors = useCase.validate(page, mapOf("code" to "anything"))
+        assertTrue("Invalid regex should not produce errors", errors.isEmpty())
+    }
+
+    @Test
     fun `validateAllPages aggregates errors from multiple pages`() {
         val pages = listOf(
             Page("p1", "Page 1", listOf(

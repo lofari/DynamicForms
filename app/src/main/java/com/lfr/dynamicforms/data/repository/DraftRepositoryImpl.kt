@@ -9,10 +9,9 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 class DraftRepositoryImpl @Inject constructor(
-    private val draftDao: DraftDao
+    private val draftDao: DraftDao,
+    private val json: Json
 ) : DraftRepository {
-
-    private val json = Json
 
     override suspend fun saveDraft(formId: String, pageIndex: Int, values: Map<String, String>) {
         draftDao.upsert(
@@ -27,10 +26,17 @@ class DraftRepositoryImpl @Inject constructor(
 
     override suspend fun getDraft(formId: String): Draft? {
         val entity = draftDao.getDraft(formId) ?: return null
+        val values: Map<String, String> = try {
+            json.decodeFromString(entity.valuesJson)
+        } catch (_: Exception) {
+            // Corrupted draft data — delete it so it doesn't block future loads
+            draftDao.deleteDraft(formId)
+            return null
+        }
         return Draft(
             formId = entity.formId,
             pageIndex = entity.pageIndex,
-            values = json.decodeFromString(entity.valuesJson),
+            values = values,
             updatedAt = entity.updatedAt
         )
     }

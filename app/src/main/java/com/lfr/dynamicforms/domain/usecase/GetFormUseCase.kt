@@ -1,5 +1,6 @@
 package com.lfr.dynamicforms.domain.usecase
 
+import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.Form
 import com.lfr.dynamicforms.domain.model.getDefaultValue
 import com.lfr.dynamicforms.domain.repository.DraftRepository
@@ -16,7 +17,7 @@ class GetFormUseCase @Inject constructor(
     private val formRepository: FormRepository,
     private val draftRepository: DraftRepository
 ) {
-    suspend operator fun invoke(formId: String): FormWithDraft {
+    suspend operator fun invoke(formId: String): DomainResult<FormWithDraft> = try {
         val form = formRepository.getForm(formId)
 
         val defaults = mutableMapOf<String, String>()
@@ -27,7 +28,7 @@ class GetFormUseCase @Inject constructor(
         }
 
         val draft = draftRepository.getDraft(formId)
-        return if (draft != null) {
+        val result = if (draft != null) {
             FormWithDraft(
                 form = form,
                 initialValues = defaults + draft.values,
@@ -40,5 +41,8 @@ class GetFormUseCase @Inject constructor(
                 initialPageIndex = 0
             )
         }
+        DomainResult.Success(result)
+    } catch (e: Exception) {
+        DomainResult.Failure(e)
     }
 }

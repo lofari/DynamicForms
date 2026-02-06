@@ -15,7 +15,8 @@ import org.junit.Test
 class DraftRepositoryImplTest {
 
     private val draftDao = mockk<DraftDao>(relaxUnitFun = true)
-    private val repository = DraftRepositoryImpl(draftDao)
+    private val json = Json { ignoreUnknownKeys = true }
+    private val repository = DraftRepositoryImpl(draftDao, json)
 
     @Test
     fun `saveDraft serializes values to JSON entity`() = runTest {
@@ -57,5 +58,21 @@ class DraftRepositoryImplTest {
         val result = repository.getDraft("f1")
 
         assertNull(result)
+    }
+
+    @Test
+    fun `getDraft returns null and deletes draft when JSON is corrupted`() = runTest {
+        val entity = DraftEntity(
+            formId = "f1",
+            pageIndex = 0,
+            valuesJson = "not valid json {{{",
+            updatedAt = 1000L
+        )
+        coEvery { draftDao.getDraft("f1") } returns entity
+
+        val result = repository.getDraft("f1")
+
+        assertNull(result)
+        coVerify { draftDao.deleteDraft("f1") }
     }
 }

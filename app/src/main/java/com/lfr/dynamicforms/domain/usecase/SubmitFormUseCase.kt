@@ -1,7 +1,6 @@
 package com.lfr.dynamicforms.domain.usecase
 
 import com.lfr.dynamicforms.domain.model.Form
-import com.lfr.dynamicforms.domain.model.SubmissionResponse
 import com.lfr.dynamicforms.domain.repository.DraftRepository
 import com.lfr.dynamicforms.domain.repository.FormRepository
 import javax.inject.Inject
@@ -21,7 +20,12 @@ class SubmitFormUseCase @Inject constructor(
             return SubmitResult.ValidationFailed(errors, firstPage)
         }
 
-        val response = formRepository.submitForm(form.formId, values)
+        val response = try {
+            formRepository.submitForm(form.formId, values)
+        } catch (e: Exception) {
+            return SubmitResult.NetworkError(e)
+        }
+
         return if (response.success) {
             draftRepository.deleteDraft(form.formId)
             SubmitResult.Success(response.message ?: "Form submitted successfully")
@@ -36,4 +40,5 @@ sealed class SubmitResult {
     data class Success(val message: String) : SubmitResult()
     data class ValidationFailed(val errors: Map<String, String>, val firstErrorPage: Int) : SubmitResult()
     data class ServerError(val fieldErrors: Map<String, String>, val firstErrorPage: Int) : SubmitResult()
+    data class NetworkError(val exception: Throwable) : SubmitResult()
 }

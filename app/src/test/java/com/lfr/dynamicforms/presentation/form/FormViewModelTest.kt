@@ -3,6 +3,7 @@ package com.lfr.dynamicforms.presentation.form
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.lfr.dynamicforms.MainDispatcherRule
+import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.Form
 import com.lfr.dynamicforms.domain.model.Page
 import com.lfr.dynamicforms.domain.model.RepeatingGroupElement
@@ -47,7 +48,7 @@ class FormViewModelTest {
             Page("p$it", "Page $it", listOf(TextFieldElement("f$it", "Field $it")))
         }
         val form = Form("f1", "Test", pageList)
-        coEvery { getForm("f1") } returns FormWithDraft(form, emptyMap(), 0)
+        coEvery { getForm("f1") } returns DomainResult.Success(FormWithDraft(form, emptyMap(), 0))
         val vm = createViewModel()
         vm.onAction(FormAction.LoadForm("f1"))
         return vm
@@ -60,7 +61,7 @@ class FormViewModelTest {
         val page = Page("p1", "Page 1", listOf(TextFieldElement("name", "Name")))
         val form = Form("f1", "Test Form", listOf(page))
         val initialValues = mapOf("name" to "Alice")
-        coEvery { getForm("f1") } returns FormWithDraft(form, initialValues, 0)
+        coEvery { getForm("f1") } returns DomainResult.Success(FormWithDraft(form, initialValues, 0))
 
         val vm = createViewModel()
         vm.onAction(FormAction.LoadForm("f1"))
@@ -81,7 +82,7 @@ class FormViewModelTest {
         )
         val page = Page("p1", "Page 1", listOf(rg))
         val form = Form("f1", "Test Form", listOf(page))
-        coEvery { getForm("f1") } returns FormWithDraft(form, emptyMap(), 0)
+        coEvery { getForm("f1") } returns DomainResult.Success(FormWithDraft(form, emptyMap(), 0))
 
         val vm = createViewModel()
         vm.onAction(FormAction.LoadForm("f1"))
@@ -91,7 +92,7 @@ class FormViewModelTest {
 
     @Test
     fun `LoadForm error sets errorMessage`() = runTest {
-        coEvery { getForm("f1") } throws RuntimeException("Oops")
+        coEvery { getForm("f1") } returns DomainResult.Failure(RuntimeException("Oops"))
 
         val vm = createViewModel()
         vm.onAction(FormAction.LoadForm("f1"))
@@ -115,7 +116,7 @@ class FormViewModelTest {
     fun `UpdateField clears field error`() = runTest {
         val page = Page("p1", "Page 1", listOf(TextFieldElement("name", "Name")))
         val form = Form("f1", "Test", listOf(page))
-        coEvery { getForm("f1") } returns FormWithDraft(form, emptyMap(), 0)
+        coEvery { getForm("f1") } returns DomainResult.Success(FormWithDraft(form, emptyMap(), 0))
 
         val vm = createViewModel()
         vm.onAction(FormAction.LoadForm("f1"))
@@ -240,9 +241,9 @@ class FormViewModelTest {
     }
 
     @Test
-    fun `Submit exception emits ShowError`() = runTest {
+    fun `Submit NetworkError emits ShowError`() = runTest {
         val vm = loadedViewModel()
-        coEvery { submitForm(any(), any()) } throws RuntimeException("Network failure")
+        coEvery { submitForm(any(), any()) } returns SubmitResult.NetworkError(RuntimeException("Network failure"))
 
         vm.effect.test {
             vm.onAction(FormAction.Submit)
@@ -264,7 +265,7 @@ class FormViewModelTest {
         )
         val page = Page("p1", "Page 1", listOf(rg))
         val form = Form("f1", "Test", listOf(page))
-        coEvery { getForm("f1") } returns FormWithDraft(form, emptyMap(), 0)
+        coEvery { getForm("f1") } returns DomainResult.Success(FormWithDraft(form, emptyMap(), 0))
 
         val vm = createViewModel()
         vm.onAction(FormAction.LoadForm("f1"))
@@ -288,7 +289,7 @@ class FormViewModelTest {
             "rg1[1].name" to "B",
             "rg1[2].name" to "C"
         )
-        coEvery { getForm("f1") } returns FormWithDraft(form, initialValues, 0)
+        coEvery { getForm("f1") } returns DomainResult.Success(FormWithDraft(form, initialValues, 0))
 
         val vm = createViewModel()
         vm.onAction(FormAction.LoadForm("f1"))

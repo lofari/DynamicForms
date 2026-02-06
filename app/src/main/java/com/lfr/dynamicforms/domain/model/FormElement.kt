@@ -22,6 +22,12 @@ enum class ConditionOperator {
     @SerialName("is_not_empty") IS_NOT_EMPTY
 }
 
+/**
+ * Base type for all dynamic form fields. Subtypes are deserialized polymorphically via
+ * `kotlinx.serialization` using `classDiscriminator = "type"` (configured in [NetworkModule]).
+ * Each concrete subtype carries a `@SerialName` matching the JSON `"type"` value
+ * (e.g. `"text_field"`, `"dropdown"`, `"repeating_group"`).
+ */
 @Serializable
 sealed class FormElement {
     abstract val id: String

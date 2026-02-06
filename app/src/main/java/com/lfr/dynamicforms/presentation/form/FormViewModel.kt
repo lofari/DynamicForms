@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lfr.dynamicforms.domain.model.Form
 import com.lfr.dynamicforms.domain.model.RepeatingGroupElement
+import com.lfr.dynamicforms.domain.model.fold
 import com.lfr.dynamicforms.domain.usecase.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -58,30 +59,33 @@ class FormViewModel @Inject constructor(
     private fun loadForm(formId: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null, formId = formId) }
-            try {
-                val result = getForm(formId)
-                val groupCounts = mutableMapOf<String, Int>()
-                for (page in result.form.pages) {
-                    for (element in page.elements) {
-                        if (element is RepeatingGroupElement) {
-                            groupCounts[element.id] = element.minItems
+
+            getForm(formId).fold(
+                onSuccess = { result ->
+                    val groupCounts = mutableMapOf<String, Int>()
+                    for (page in result.form.pages) {
+                        for (element in page.elements) {
+                            if (element is RepeatingGroupElement) {
+                                groupCounts[element.id] = element.minItems
+                            }
                         }
                     }
+                    val visibleIds = computeVisibleIds(result.form, result.initialValues)
+                    _state.update {
+                        it.copy(
+                            isLoading = false,
+                            form = result.form,
+                            values = result.initialValues,
+                            currentPageIndex = result.initialPageIndex,
+                            repeatingGroupCounts = groupCounts,
+                            visibleElementIds = visibleIds
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    _state.update { it.copy(isLoading = false, errorMessage = error.toUserMessage()) }
                 }
-                val visibleIds = computeVisibleIds(result.form, result.initialValues)
-                _state.update {
-                    it.copy(
-                        isLoading = false,
-                        form = result.form,
-                        values = result.initialValues,
-                        currentPageIndex = result.initialPageIndex,
-                        repeatingGroupCounts = groupCounts,
-                        visibleElementIds = visibleIds
-                    )
-                }
-            } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
-            }
+            )
         }
     }
 
@@ -124,34 +128,33 @@ class FormViewModel @Inject constructor(
         val form = current.form ?: return
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true) }
-            try {
-                when (val result = submitForm(form, current.values)) {
-                    is SubmitResult.Success -> {
-                        _state.update { it.copy(isSubmitting = false) }
-                        _effect.send(FormEffect.NavigateToSuccess(form.formId, result.message))
-                    }
-                    is SubmitResult.ValidationFailed -> {
-                        _state.update {
-                            it.copy(
-                                isSubmitting = false,
-                                errors = result.errors,
-                                currentPageIndex = result.firstErrorPage
-                            )
-                        }
-                    }
-                    is SubmitResult.ServerError -> {
-                        _state.update {
-                            it.copy(
-                                isSubmitting = false,
-                                errors = result.fieldErrors,
-                                currentPageIndex = result.firstErrorPage
-                            )
-                        }
+            when (val result = submitForm(form, current.values)) {
+                is SubmitResult.Success -> {
+                    _state.update { it.copy(isSubmitting = false) }
+                    _effect.send(FormEffect.NavigateToSuccess(form.formId, result.message))
+                }
+                is SubmitResult.ValidationFailed -> {
+                    _state.update {
+                        it.copy(
+                            isSubmitting = false,
+                            errors = result.errors,
+                            currentPageIndex = result.firstErrorPage
+                        )
                     }
                 }
-            } catch (e: Exception) {
-                _state.update { it.copy(isSubmitting = false) }
-                _effect.send(FormEffect.ShowError(e.toUserMessage()))
+                is SubmitResult.ServerError -> {
+                    _state.update {
+                        it.copy(
+                            isSubmitting = false,
+                            errors = result.fieldErrors,
+                            currentPageIndex = result.firstErrorPage
+                        )
+                    }
+                }
+                is SubmitResult.NetworkError -> {
+                    _state.update { it.copy(isSubmitting = false) }
+                    _effect.send(FormEffect.ShowError(result.exception.toUserMessage()))
+                }
             }
         }
     }
@@ -175,7 +178,9 @@ class FormViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 saveDraft(formId, current.currentPageIndex, current.values)
-            } catch (_: Exception) { }
+            } catch (e: Exception) {
+                android.util.Log.w("FormViewModel", "Draft save failed", e)
+            }
         }
     }
 

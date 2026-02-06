@@ -6,6 +6,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.LabelElement
@@ -19,7 +20,7 @@ fun DynamicLabel(
     Text(
         text = element.text.ifBlank { element.label },
         style = MaterialTheme.typography.bodyMedium,
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier.fillMaxWidth().testTag("field_${element.id}")
     )
 }
 

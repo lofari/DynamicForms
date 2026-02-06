@@ -9,4 +9,4 @@ object FormListRoute
 data class FormWizardRoute(val formId: String)
 
 @Serializable
-data class FormSuccessRoute(val formId: String)
+data class FormSuccessRoute(val formId: String, val message: String)

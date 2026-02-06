@@ -18,7 +18,9 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(context, AppDatabase::class.java, "dynamicforms.db").build()
+        Room.databaseBuilder(context, AppDatabase::class.java, "dynamicforms.db")
+            .fallbackToDestructiveMigration(dropAllTables = true)
+            .build()
 
     @Provides
     fun provideDraftDao(database: AppDatabase): DraftDao = database.draftDao()

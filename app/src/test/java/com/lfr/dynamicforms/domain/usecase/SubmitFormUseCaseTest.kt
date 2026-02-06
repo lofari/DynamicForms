@@ -116,6 +116,18 @@ class SubmitFormUseCaseTest {
     }
 
     @Test
+    fun `network exception returns NetworkError`() = runTest {
+        every { validatePage.validateAllPages(form.pages, values) } returns emptyMap()
+        coEvery { formRepo.submitForm("f1", values) } throws RuntimeException("Timeout")
+
+        val result = useCase(form, values)
+
+        assertTrue(result is SubmitResult.NetworkError)
+        assertEquals("Timeout", (result as SubmitResult.NetworkError).exception.message)
+        coVerify(exactly = 0) { draftRepo.deleteDraft(any()) }
+    }
+
+    @Test
     fun `draft not deleted on server error`() = runTest {
         val fieldErrors = mapOf("name" to "too short")
         every { validatePage.validateAllPages(form.pages, values) } returns emptyMap()

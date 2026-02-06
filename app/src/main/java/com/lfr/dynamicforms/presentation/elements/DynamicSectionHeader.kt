@@ -7,6 +7,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.lfr.dynamicforms.domain.model.SectionHeaderElement
@@ -18,7 +20,7 @@ fun DynamicSectionHeader(
     modifier: Modifier = Modifier
 ) {
     Column(modifier = modifier.fillMaxWidth().padding(vertical = 8.dp)) {
-        Text(element.label, style = MaterialTheme.typography.titleLarge)
+        Text(element.label, style = MaterialTheme.typography.titleLarge, modifier = Modifier.semantics { heading() })
         if (!element.subtitle.isNullOrBlank()) {
             Text(element.subtitle, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }

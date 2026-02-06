@@ -2,6 +2,62 @@
 
 An Android app that receives polymorphic JSON form definitions from a backend, parses them by element type, and renders dynamic multi-step form wizards. Includes a Ktor backend server and a React admin panel for managing form definitions and viewing submissions.
 
+## Features
+
+- **Dynamic form rendering from JSON** -- 14 element types parsed via polymorphic `kotlinx.serialization`
+- **Multi-page wizard** with progress bar tracking and page-level validation
+- **Client-side validation** with real-time inline error feedback (required, regex, min/max, length)
+- **Conditional field visibility** -- 7 operators (`equals`, `not_equals`, `greater_than`, `less_than`, `contains`, `is_empty`, `is_not_empty`)
+- **Repeating groups** with dynamic add/remove rows (indexed field IDs: `contacts[0].name`)
+- **Auto-saving drafts** to Room DB on every page navigation and field change, with one-tap resume from the form list
+- **Signature capture**, file upload placeholder, and Material3 date picker
+- **Real backend** (Ktor) + **React admin panel** with Monaco JSON editor, live preview, and CSV export of submissions
+
+## Demo
+
+https://github.com/user-attachments/assets/demo-placeholder
+
+> Replace the link above with a screen recording or GIF showing a form being filled, validated, and submitted.
+
+## Running the App
+
+**Prerequisites:** Android Studio, JDK 17, Android emulator or device (API 24+).
+
+```bash
+# Set JAVA_HOME (required -- system JDK defaults to 8)
+export JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home
+
+# Build
+./gradlew assembleDebug
+
+# Run unit tests
+./gradlew test
+
+# Optional: start the Ktor backend (the debug build auto-connects via 10.0.2.2)
+./gradlew -PincludeBackend=true :backend:run
+```
+
+## Testing
+
+| Layer | Files | What is covered |
+|-------|------:|-----------------|
+| Unit tests (`app/src/test/`) | 13 | Domain use cases, repository implementations, ViewModel logic, JSON deserialization, UI state |
+| Compose UI tests (`app/src/androidTest/`) | 17 | One test file per form element + screen-level tests for form, list, and success screens |
+| Maestro E2E (`.maestro/`) | 4 flows | Happy-path submissions, validation errors, page navigation, form list browsing |
+
+```bash
+# All unit tests
+JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew test
+
+# Compose UI tests (requires emulator)
+JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew connectedAndroidTest
+
+# Maestro E2E (requires running app on emulator)
+maestro test .maestro/
+```
+
+---
+
 ## Architecture
 
 ```
@@ -67,86 +123,30 @@ Single-page application served by Ktor at `/admin`.
 
 All elements support conditional visibility via `visibleWhen`, which evaluates field values against operators like `equals`, `not_equals`, `greater_than`, `less_than`, `contains`, `is_empty`, and `is_not_empty`.
 
-## Prerequisites
+## Setup Details
 
-- **JDK 17** (the project uses Gradle 9.1 which requires JDK 17+)
-- **Android Studio** (for the Android app)
-- **Node.js 18+** (for the admin panel)
+<details>
+<summary>Backend and admin panel setup (optional)</summary>
 
-## Getting Started
-
-### 1. Set JAVA_HOME
-
-The system JDK must be version 17. All Gradle commands require:
+**Start the backend:**
 
 ```bash
-export JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home
+./gradlew -PincludeBackend=true :backend:run   # http://localhost:8080
 ```
 
-### 2. Build the Android App
+**Build the admin panel** (requires Node.js 18+):
 
 ```bash
-./gradlew assembleDebug
+cd admin && npm install && npm run build   # outputs to backend/src/main/resources/admin/
 ```
 
-### 3. Start the Backend
+Visit `http://localhost:8080/admin/` once the backend is running. For dev with hot reload: `cd admin && npm run dev`.
 
-```bash
-./gradlew -PincludeBackend=true :backend:run
-```
+**Connect the Android app:** The debug build auto-connects to `http://10.0.2.2:8080` (emulator alias for localhost). The release build uses `MockInterceptor` for offline operation, controlled by `BuildConfig.USE_MOCK` in `app/build.gradle.kts`.
 
-The server starts on `http://localhost:8080`. Verify with:
+**Note:** The backend module is excluded from Android Studio indexing by default. Include it with `-PincludeBackend=true`.
 
-```bash
-curl http://localhost:8080/forms
-```
-
-### 4. Build the Admin Panel
-
-```bash
-cd admin
-npm install
-npm run build    # outputs to backend/src/main/resources/admin/
-```
-
-Once built and the backend is running, visit `http://localhost:8080/admin/`.
-
-For development with hot reload:
-
-```bash
-cd admin
-npm run dev      # proxies API calls to localhost:8080
-```
-
-### 5. Connect the Android App to the Backend
-
-The debug build is configured to connect to the real backend at `http://10.0.2.2:8080` (the emulator's alias for host localhost). Start the backend first, then run the app on an emulator.
-
-The release build uses the `MockInterceptor` for offline operation. This is controlled by `BuildConfig.USE_MOCK` and `BuildConfig.BASE_URL` in `app/build.gradle.kts`.
-
-## Running Tests
-
-```bash
-# Android unit tests
-./gradlew testDebugUnitTest
-
-# Android instrumented tests (requires emulator)
-./gradlew connectedAndroidTest
-
-# Backend tests
-./gradlew -PincludeBackend=true :backend:test
-
-# Maestro E2E tests (requires running app on emulator)
-maestro test .maestro/
-```
-
-## Project Configuration
-
-The backend module is excluded from Android Studio by default to avoid indexing issues. It is only included when the `includeBackend` Gradle property is set:
-
-```bash
-./gradlew -PincludeBackend=true :backend:build
-```
+</details>
 
 ## Tech Stack
 

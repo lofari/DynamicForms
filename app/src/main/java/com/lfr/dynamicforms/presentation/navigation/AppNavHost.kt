@@ -1,9 +1,7 @@
 package com.lfr.dynamicforms.presentation.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.NavHost
-import com.lfr.dynamicforms.R
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
@@ -24,8 +22,8 @@ fun AppNavHost() {
         composable<FormWizardRoute> {
             FormScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onNavigateToSuccess = { formId, _ ->
-                    navController.navigate(FormSuccessRoute(formId)) {
+                onNavigateToSuccess = { formId, message ->
+                    navController.navigate(FormSuccessRoute(formId, message)) {
                         popUpTo(FormListRoute) { inclusive = false }
                     }
                 }
@@ -34,7 +32,7 @@ fun AppNavHost() {
         composable<FormSuccessRoute> { backStackEntry ->
             val route = backStackEntry.toRoute<FormSuccessRoute>()
             FormSuccessScreen(
-                message = stringResource(R.string.form_submitted_successfully),
+                message = route.message,
                 onBackToList = {
                     navController.popBackStack(FormListRoute, inclusive = false)
                 }

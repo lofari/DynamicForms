@@ -1,9 +1,9 @@
 package com.lfr.dynamicforms.domain.usecase
 
+import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.Draft
 import com.lfr.dynamicforms.domain.model.Form
 import com.lfr.dynamicforms.domain.model.Page
-import com.lfr.dynamicforms.domain.model.SliderElement
 import com.lfr.dynamicforms.domain.model.TextFieldElement
 import com.lfr.dynamicforms.domain.model.ToggleElement
 import com.lfr.dynamicforms.domain.repository.DraftRepository
@@ -36,10 +36,12 @@ class GetFormUseCaseTest {
 
         val result = useCase("f1")
 
-        assertEquals(form, result.form)
-        assertEquals("true", result.initialValues["toggle1"])
-        assertTrue("text1" !in result.initialValues)
-        assertEquals(0, result.initialPageIndex)
+        assertTrue(result is DomainResult.Success)
+        val data = (result as DomainResult.Success).data
+        assertEquals(form, data.form)
+        assertEquals("true", data.initialValues["toggle1"])
+        assertTrue("text1" !in data.initialValues)
+        assertEquals(0, data.initialPageIndex)
     }
 
     @Test
@@ -60,9 +62,9 @@ class GetFormUseCaseTest {
         coEvery { formRepo.getForm("f1") } returns form
         coEvery { draftRepo.getDraft("f1") } returns draft
 
-        val result = useCase("f1")
+        val result = useCase("f1") as DomainResult.Success
 
-        assertEquals("false", result.initialValues["toggle1"])
+        assertEquals("false", result.data.initialValues["toggle1"])
     }
 
     @Test
@@ -82,9 +84,9 @@ class GetFormUseCaseTest {
         coEvery { formRepo.getForm("f1") } returns form
         coEvery { draftRepo.getDraft("f1") } returns draft
 
-        val result = useCase("f1")
+        val result = useCase("f1") as DomainResult.Success
 
-        assertEquals(2, result.initialPageIndex)
+        assertEquals(2, result.data.initialPageIndex)
     }
 
     @Test
@@ -99,20 +101,18 @@ class GetFormUseCaseTest {
         coEvery { formRepo.getForm("f1") } returns form
         coEvery { draftRepo.getDraft("f1") } returns null
 
-        val result = useCase("f1")
+        val result = useCase("f1") as DomainResult.Success
 
-        assertTrue(result.initialValues.isEmpty())
+        assertTrue(result.data.initialValues.isEmpty())
     }
 
     @Test
-    fun `repository exception propagates`() = runTest {
+    fun `repository exception is captured in Failure`() = runTest {
         coEvery { formRepo.getForm("f1") } throws RuntimeException("Network error")
 
-        try {
-            useCase("f1")
-            throw AssertionError("Expected RuntimeException")
-        } catch (e: RuntimeException) {
-            assertEquals("Network error", e.message)
-        }
+        val result = useCase("f1")
+
+        assertTrue(result is DomainResult.Failure)
+        assertEquals("Network error", (result as DomainResult.Failure).error.message)
     }
 }
