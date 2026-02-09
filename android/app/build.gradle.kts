@@ -14,9 +14,9 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-        // Default to mock interceptor; override in debug to use real backend
-        buildConfigField("String", "BASE_URL", "\"https://api.dynamicforms.mock/\"")
-        buildConfigField("Boolean", "USE_MOCK", "true")
+        // Default to Fly.io backend; override in debug to use local backend
+        buildConfigField("String", "BASE_URL", "\"https://dynamicforms-lfr.fly.dev/\"")
+        buildConfigField("Boolean", "USE_MOCK", "false")
     }
 
     buildTypes {
