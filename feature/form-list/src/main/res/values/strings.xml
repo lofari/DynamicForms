@@ -1,0 +1,15 @@
+<resources>
+    <!-- FormListScreen -->
+    <string name="form_list_title">Dynamic Forms</string>
+    <string name="steps_count">%1$d steps</string>
+    <string name="fields_count">%1$d fields</string>
+    <string name="resume_badge">Resume</string>
+    <string name="retry">Retry</string>
+
+    <!-- Accessibility -->
+    <string name="open_form_content_description">Open %1$s</string>
+    <string name="retry_submission_content_description">Retry submission</string>
+    <string name="discard_submission_content_description">Discard submission</string>
+    <string name="collapse_content_description">Collapse</string>
+    <string name="expand_content_description">Expand</string>
+</resources>

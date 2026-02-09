@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- General -->
+    <string name="form_title_fallback">Modulo</string>
+    <string name="back">Indietro</string>
+    <string name="next">Avanti</string>
+    <string name="submit">Invia</string>
+    <string name="retry">Riprova</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Annulla</string>
+
+    <!-- FormScreen -->
+    <string name="step_progress">Passaggio %1$d di %2$d</string>
+
+    <!-- FormSuccessScreen -->
+    <string name="success_content_description">Successo</string>
+    <string name="success_title">Successo!</string>
+    <string name="back_to_forms">Torna ai Moduli</string>
+
+    <!-- DynamicSignature -->
+    <string name="signature_pad_not_signed">Campo firma, non firmato</string>
+    <string name="signature_pad_signed">Campo firma, firmato</string>
+    <string name="signature_placeholder">Disegna la tua firma qui</string>
+    <string name="clear">Cancella</string>
+
+    <!-- DynamicFileUpload -->
+    <string name="choose_file">Scegli file</string>
+    <string name="choose_file_content_description">Scegli un file da caricare per %1$s</string>
+    <string name="allowed_types">Consentiti: %1$s</string>
+
+    <!-- DynamicRepeatingGroup -->
+    <string name="repeating_item_label">Elemento %1$d</string>
+    <string name="remove_item_content_description">Rimuovi elemento %1$d</string>
+    <string name="add_item_content_description">Aggiungi elemento</string>
+    <string name="add_label">Aggiungi %1$s</string>
+
+    <!-- DynamicSlider -->
+    <string name="slider_label_value">%1$s: %2$d</string>
+
+    <!-- DynamicDatePicker -->
+    <string name="date_picker_tap_to_pick">Tocca per selezionare una data per %1$s</string>
+
+    <!-- Accessibility -->
+    <string name="open_form_content_description">Apri %1$s</string>
+</resources>

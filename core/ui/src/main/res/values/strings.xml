@@ -1,0 +1,4 @@
+<resources>
+    <!-- FormElementUtils -->
+    <string name="required_label_format">%1$s *</string>
+</resources>

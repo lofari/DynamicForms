@@ -1,4 +1,5 @@
 pluginManagement {
+    includeBuild("build-logic")
     repositories {
         google {
             content {
@@ -21,6 +22,13 @@ dependencyResolutionManagement {
 
 rootProject.name = "DynamicForms"
 include(":app")
+include(":core:model")
+include(":core:domain")
+include(":core:data")
+include(":core:ui")
+include(":core:testing")
+include(":feature:form-wizard")
+include(":feature:form-list")
 if (providers.gradleProperty("includeBackend").getOrElse("false").toBoolean()) {
     include(":backend")
 }

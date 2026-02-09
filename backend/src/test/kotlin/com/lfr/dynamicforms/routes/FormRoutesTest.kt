@@ -57,6 +57,42 @@ class FormRoutesTest {
     }
 
     @Test
+    fun `POST submit with Idempotency-Key stores only one submission`() = testApplication {
+        application { module() }
+        val key = "test-idempotency-key-123"
+        val body = """{"formId":"feedback_v1","values":{"rating":"4","recommend":"yes"}}"""
+
+        // First submission
+        val response1 = client.post("/forms/feedback_v1/submit") {
+            contentType(ContentType.Application.Json)
+            header("Idempotency-Key", key)
+            setBody(body)
+        }
+        assertEquals(HttpStatusCode.OK, response1.status)
+        val body1 = Json.parseToJsonElement(response1.bodyAsText()).jsonObject
+        assertEquals(true, body1["success"]?.jsonPrimitive?.boolean)
+
+        // Second submission with same key
+        val response2 = client.post("/forms/feedback_v1/submit") {
+            contentType(ContentType.Application.Json)
+            header("Idempotency-Key", key)
+            setBody(body)
+        }
+        assertEquals(HttpStatusCode.OK, response2.status)
+        val body2 = Json.parseToJsonElement(response2.bodyAsText()).jsonObject
+        assertEquals(true, body2["success"]?.jsonPrimitive?.boolean)
+
+        // Verify only 1 submission stored via admin endpoint
+        val adminResponse = client.get("/admin/forms/feedback_v1/submissions")
+        val submissions = Json.parseToJsonElement(adminResponse.bodyAsText()).jsonArray
+        // Count submissions with our values - should be 1 not 2
+        val matchingSubmissions = submissions.filter { sub ->
+            sub.jsonObject["values"]?.jsonObject?.get("rating")?.jsonPrimitive?.content == "4"
+        }
+        assertEquals(1, matchingSubmissions.size)
+    }
+
+    @Test
     fun `POST submit with validation errors returns field errors`() = testApplication {
         application { module() }
         val response = client.post("/forms/registration_v1/submit") {

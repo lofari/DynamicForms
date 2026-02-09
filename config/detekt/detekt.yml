@@ -1,0 +1,95 @@
+style:
+  MaxLineLength:
+    maxLineLength: 150
+    excludeCommentStatements: true
+    excludeRawStrings: true
+  MagicNumber:
+    excludes:
+      - "**/test/**"
+      - "**/androidTest/**"
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotated:
+      - "Composable"
+    ignoreNumbers:
+      - "-1"
+      - "0"
+      - "1"
+      - "2"
+      - "3"
+      - "4"
+      - "8"
+      - "10"
+      - "16"
+      - "24"
+      - "100"
+  WildcardImport:
+    active: false
+  UnusedPrivateMember:
+    allowedNames: "_.*"
+    ignoreAnnotated:
+      - "Preview"
+      - "Composable"
+  ReturnCount:
+    max: 5
+  UnusedPrivateProperty:
+    allowedNames: "_.*"
+
+naming:
+  FunctionNaming:
+    ignoreAnnotated:
+      - "Composable"
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: false
+
+complexity:
+  LongMethod:
+    threshold: 80
+    ignoreAnnotated:
+      - "Composable"
+  CyclomaticComplexMethod:
+    threshold: 20
+    ignoreAnnotated:
+      - "Composable"
+  LongParameterList:
+    constructorThreshold: 12
+    functionThreshold: 10
+    ignoreAnnotated:
+      - "Composable"
+      - "Inject"
+  TooManyFunctions:
+    thresholdInFiles: 30
+    thresholdInClasses: 25
+    thresholdInInterfaces: 15
+  NestedBlockDepth:
+    threshold: 5
+
+formatting:
+  MaximumLineLength:
+    active: false
+  ImportOrdering:
+    active: false
+  AnnotationOnSeparateLine:
+    active: false
+  MultiLineIfElse:
+    active: false
+  ParameterListWrapping:
+    active: false
+  ArgumentListWrapping:
+    active: false
+  Wrapping:
+    active: false
+  NoWildcardImports:
+    active: false
+  SpacingBetweenDeclarationsWithAnnotations:
+    active: false
+  Indentation:
+    active: false
+  NoUnusedImports:
+    active: true
+  FunctionName:
+    ignoreAnnotated:
+      - "Composable"
+      - "Test"

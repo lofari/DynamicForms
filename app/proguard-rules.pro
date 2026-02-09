@@ -1,21 +1,35 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# --- Debug info ---
+-keepattributes SourceFile,LineNumberTable
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# --- kotlinx.serialization ---
+# Keep serializer classes and companion objects for polymorphic deserialization
+-keepclassmembers class com.lfr.dynamicforms.domain.model.** {
+    *** Companion;
+}
+-keepclasseswithmembers class com.lfr.dynamicforms.domain.model.** {
+    kotlinx.serialization.KSerializer serializer(...);
+}
+-keep,includedescriptorclasses class com.lfr.dynamicforms.domain.model.**$$serializer { *; }
+-keepnames class com.lfr.dynamicforms.domain.model.** { *; }
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# Keep @SerialName annotations (needed for classDiscriminator)
+-keepattributes *Annotation*
+-keepattributes RuntimeVisibleAnnotations
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# --- Retrofit ---
+-keep interface com.lfr.dynamicforms.data.remote.FormApi { *; }
+-keepclassmembers,allowobfuscation interface * {
+    @retrofit2.http.* <methods>;
+}
+
+# --- Room ---
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class *
+-keep @androidx.room.Dao class * { *; }
+
+# --- WorkManager ---
+-keep class * extends androidx.work.ListenableWorker
+
+# --- Hilt ---
+# Hilt generates keep rules automatically via ksp, but keep entry points
+-keep class com.lfr.dynamicforms.DynamicFormsApp

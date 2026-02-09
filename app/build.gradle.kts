@@ -1,25 +1,18 @@
 plugins {
-    alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.compose)
+    id("dynamicforms.android.application")
+    id("dynamicforms.compose")
+    id("dynamicforms.hilt")
+    id("dynamicforms.detekt")
     alias(libs.plugins.kotlin.serialization)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.hilt)
 }
 
 android {
     namespace = "com.lfr.dynamicforms"
-    compileSdk {
-        version = release(36)
-    }
 
     defaultConfig {
         applicationId = "com.lfr.dynamicforms"
-        minSdk = 24
-        targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // Default to mock interceptor; override in debug to use real backend
         buildConfigField("String", "BASE_URL", "\"https://api.dynamicforms.mock/\"")
@@ -33,58 +26,55 @@ android {
             buildConfigField("Boolean", "USE_MOCK", "false")
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
     buildFeatures {
-        compose = true
         buildConfig = true
     }
 }
 
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-}
-
 dependencies {
+    // Modules
+    implementation(project(":core:model"))
+    implementation(project(":core:domain"))
+    implementation(project(":core:data"))
+    implementation(project(":core:ui"))
+    implementation(project(":feature:form-wizard"))
+    implementation(project(":feature:form-list"))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.graphics)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.compose.material3)
-
-    // Hilt
-    implementation(libs.hilt.android)
-    ksp(libs.hilt.compiler)
-    implementation(libs.hilt.navigation.compose)
-
-    // Room
-    implementation(libs.room.runtime)
-    implementation(libs.room.ktx)
-    ksp(libs.room.compiler)
 
     // Navigation
     implementation(libs.navigation.compose)
 
-    // Serialization
+    // Serialization (for Json provider in NetworkModule)
     implementation(libs.kotlinx.serialization.json)
 
-    // Networking
+    // Networking (for NetworkModule)
     implementation(libs.retrofit)
     implementation(libs.retrofit.kotlinx.serialization)
     implementation(libs.okhttp)
     implementation(libs.okhttp.logging)
+
+    // Room (for DatabaseModule)
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+
+    // WorkManager (for DI wiring)
+    implementation(libs.work.runtime)
+    implementation(libs.hilt.work)
+    ksp(libs.hilt.work.compiler)
+
+    // Timber
+    implementation(libs.timber)
 
     // Test
     testImplementation(libs.junit)
@@ -95,6 +85,4 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
 }

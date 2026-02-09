@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- FormListScreen -->
+    <string name="form_list_title">Moduli Dinamici</string>
+    <string name="steps_count">%1$d passaggi</string>
+    <string name="fields_count">%1$d campi</string>
+    <string name="resume_badge">Riprendi</string>
+    <string name="retry">Riprova</string>
+
+    <!-- Accessibility -->
+    <string name="open_form_content_description">Apri %1$s</string>
+    <string name="retry_submission_content_description">Riprova invio</string>
+    <string name="discard_submission_content_description">Elimina invio</string>
+    <string name="collapse_content_description">Comprimi</string>
+    <string name="expand_content_description">Espandi</string>
+</resources>
