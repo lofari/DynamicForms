@@ -5,11 +5,15 @@ An Android app that receives polymorphic JSON form definitions from a backend, p
 ## Features
 
 - **Dynamic form rendering from JSON** -- 14 element types parsed via polymorphic `kotlinx.serialization`
-- **Multi-page wizard** with progress bar tracking and page-level validation
+- **Multi-page wizard** with animated page transitions and progress bar tracking
 - **Client-side validation** with real-time inline error feedback (required, regex, min/max, length)
 - **Conditional field visibility** -- 7 operators (`equals`, `not_equals`, `greater_than`, `less_than`, `contains`, `is_empty`, `is_not_empty`)
 - **Repeating groups** with dynamic add/remove rows (indexed field IDs: `contacts[0].name`)
 - **Auto-saving drafts** to Room DB on every page navigation and field change, with one-tap resume from the form list
+- **Offline submission queue** -- submissions enqueued locally and synced via WorkManager when connectivity returns
+- **Skeleton loading** with shimmer animation during form fetch
+- **Accessibility** -- heading semantics, live regions for error announcements, content descriptions on all interactive elements
+- **Italian localization** (English + Italian)
 - **Signature capture**, file upload placeholder, and Material3 date picker
 - **Real backend** (Ktor) + **React admin panel** with Monaco JSON editor, live preview, and CSV export of submissions
 
@@ -33,24 +37,32 @@ export JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Conten
 # Run unit tests
 ./gradlew test
 
+# Static analysis
+./gradlew detekt
+
 # Optional: start the Ktor backend (the debug build auto-connects via 10.0.2.2)
 ./gradlew -PincludeBackend=true :backend:run
 ```
 
 ## Testing
 
-| Layer | Files | What is covered |
-|-------|------:|-----------------|
-| Unit tests (`app/src/test/`) | 13 | Domain use cases, repository implementations, ViewModel logic, JSON deserialization, UI state |
-| Compose UI tests (`app/src/androidTest/`) | 17 | One test file per form element + screen-level tests for form, list, and success screens |
-| Maestro E2E (`.maestro/`) | 4 flows | Happy-path submissions, validation errors, page navigation, form list browsing |
+| Layer | Location | What is covered |
+|-------|----------|-----------------|
+| Unit tests | `:core:model`, `:core:domain`, `:core:data`, `:feature:form-wizard`, `:feature:form-list` | Domain use cases, repository implementations, ViewModel logic, JSON deserialization, UI state |
+| Compose UI tests | `:feature:form-wizard`, `:feature:form-list` | One test file per form element + screen-level tests for form, list, and success screens |
+| Migration tests | `:core:data` (androidTest) | Room schema migration v1 to v2 preserves drafts and creates pending_submissions table |
+| Maestro E2E | `.maestro/` | Happy-path submissions, validation errors, page navigation, form list browsing |
 
 ```bash
 # All unit tests
-JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew test
+./gradlew test
+
+# Single module tests
+./gradlew :core:domain:test
+./gradlew :feature:form-wizard:test
 
 # Compose UI tests (requires emulator)
-JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew connectedAndroidTest
+./gradlew connectedAndroidTest
 
 # Maestro E2E (requires running app on emulator)
 maestro test .maestro/
@@ -62,28 +74,36 @@ maestro test .maestro/
 
 ```
 DynamicForms/
-├── app/            Android app (Kotlin, Jetpack Compose)
-├── backend/        Ktor API server (Kotlin)
-└── admin/          React admin panel (TypeScript, Vite)
+├── build-logic/        Gradle convention plugins (shared build config)
+├── core/
+│   ├── model/          Pure Kotlin: domain models (FormElement, Form, Page, etc.)
+│   ├── domain/         Pure Kotlin: use cases + repository interfaces
+│   ├── data/           Android lib: Room, Retrofit, repositories, WorkManager
+│   ├── ui/             Android lib: theme, shared composables, common strings
+│   └── testing/        Pure Kotlin: MainDispatcherRule, test helpers
+├── feature/
+│   ├── form-wizard/    Android feature: FormScreen + ViewModel + elements
+│   └── form-list/      Android feature: FormListScreen + ViewModel
+├── app/                Thin shell: DI wiring, navigation, Application class
+├── backend/            Ktor API server (Kotlin)
+└── admin/              React admin panel (TypeScript, Vite)
 ```
 
 ### Android App
 
-MVI + Clean Architecture with Hilt dependency injection.
+MVI + Clean Architecture with Hilt dependency injection, organized as a multi-module Gradle project.
 
-| Layer | Contents |
-|-------|----------|
-| `domain/model/` | `FormElement` sealed class (14 subtypes), `Form`, `Page`, validation models |
-| `domain/usecase/` | `GetFormUseCase`, `ValidatePageUseCase`, `EvaluateVisibilityUseCase`, `SubmitFormUseCase`, `SaveDraftUseCase` |
-| `domain/repository/` | `FormRepository`, `DraftRepository` interfaces |
-| `data/remote/` | Retrofit API + `MockInterceptor` for offline development |
-| `data/local/` | Room database for draft persistence |
-| `data/repository/` | Repository implementations |
-| `di/` | Hilt modules: `NetworkModule`, `DatabaseModule`, `RepositoryModule` |
-| `presentation/elements/` | One composable per element type (text field, dropdown, slider, etc.) |
-| `presentation/form/` | MVI components: `FormViewModel`, `FormUiState`, `FormAction`, `FormEffect` |
-| `presentation/list/` | Form list screen with draft resume indicator |
-| `presentation/navigation/` | Type-safe Navigation Compose routes |
+**Convention Plugins** (`build-logic/`) provide consistent build configuration across all modules: SDK versions, Compose setup, Hilt/KSP wiring, and detekt static analysis.
+
+| Module | Contents |
+|--------|----------|
+| `:core:model` | `FormElement` sealed class (14 subtypes), `Form`, `Page`, validation models |
+| `:core:domain` | `GetFormUseCase`, `ValidatePageUseCase`, `EvaluateVisibilityUseCase`, `SubmitFormUseCase`, `SaveDraftUseCase`, `EnqueueSubmissionUseCase`, `SyncSubmissionUseCase` |
+| `:core:data` | Retrofit API, `MockInterceptor`, Room database (drafts + pending submissions), `SyncSubmissionsWorker` |
+| `:core:ui` | Material3 theme, shared composables (`ErrorText`, `ShimmerSkeleton`), `ErrorMapping` |
+| `:feature:form-wizard` | MVI components (`FormViewModel`, `FormUiState`, `FormAction`, `FormEffect`), one composable per element type, animated page transitions, skeleton loading, success screen with bounce animation |
+| `:feature:form-list` | Form list with draft resume indicator, pending submissions section |
+| `:app` | `DynamicFormsApp`, `MainActivity`, navigation graph, Hilt DI modules (`NetworkModule`, `DatabaseModule`, `RepositoryModule`) |
 
 ### Backend (Ktor)
 
@@ -153,12 +173,17 @@ Visit `http://localhost:8080/admin/` once the backend is running. For dev with h
 | Component | Technology |
 |-----------|-----------|
 | Android UI | Jetpack Compose + Material3 |
-| Architecture | MVI + Clean Architecture |
+| Architecture | MVI + Clean Architecture, multi-module Gradle |
+| Build | Convention plugins (`build-logic/`), R8 shrinking, detekt static analysis |
 | DI | Hilt |
 | Serialization | kotlinx.serialization (polymorphic, `classDiscriminator = "type"`) |
 | Networking | Retrofit + OkHttp |
-| Local storage | Room |
+| Local storage | Room (with tested schema migrations) |
+| Background work | WorkManager (offline submission sync) |
+| Logging | Timber |
 | Navigation | Navigation Compose (type-safe routes) |
+| Accessibility | Heading semantics, live regions, content descriptions |
+| Localization | English, Italian |
 | Backend | Ktor 3.1.1 + Netty |
 | Admin panel | React 19, TypeScript, Vite, Tailwind CSS, Monaco Editor |
-| Testing | JUnit, MockK, Turbine, Compose UI tests, Ktor test host |
+| Testing | JUnit, MockK, Turbine, Compose UI tests, Ktor test host, Maestro E2E |
