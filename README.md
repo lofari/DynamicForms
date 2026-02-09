@@ -159,7 +159,7 @@ This is a monorepo with three independent projects:
 | `backend/` | Standalone Ktor REST API server | Gradle (Kotlin 2.1.20) |
 | `admin/` | React admin panel (TypeScript, Vite) | npm |
 
-Each Gradle project has its own wrapper, version catalog, and settings -- they build independently.
+Each Gradle project has its own wrapper, version catalog, and settings -- they build independently. Run Gradle commands from within each directory (e.g. `cd backend && ./gradlew run`, not `./gradlew :backend:run`).
 
 ## Setup Details
 
