@@ -19,11 +19,19 @@ class FormStore(private val json: Json) {
         val count = transaction(DatabaseFactory.database) { FormTable.selectAll().count() }
         if (count > 0) return
 
-        val formsDir = this::class.java.classLoader?.getResource("forms") ?: return
-        val dir = java.io.File(formsDir.toURI())
-        dir.listFiles()?.filter { it.extension == "json" }?.forEach { file ->
+        val seedFiles = listOf(
+            "registration_v1.json",
+            "feedback_v1.json",
+            "safety_inspection_v1.json",
+            "job_application_v1.json",
+            "event_registration_v1.json",
+        )
+        for (name in seedFiles) {
             try {
-                val form = json.decodeFromString<FormDefinition>(file.readText())
+                val text = this::class.java.classLoader
+                    ?.getResourceAsStream("forms/$name")
+                    ?.bufferedReader()?.readText() ?: continue
+                val form = json.decodeFromString<FormDefinition>(text)
                 transaction(DatabaseFactory.database) {
                     FormTable.insert {
                         it[formId] = form.formId
@@ -32,7 +40,7 @@ class FormStore(private val json: Json) {
                     }
                 }
             } catch (e: Exception) {
-                System.err.println("Failed to load form from ${file.name}: ${e.message}")
+                System.err.println("Failed to load seed form $name: ${e.message}")
             }
         }
     }
