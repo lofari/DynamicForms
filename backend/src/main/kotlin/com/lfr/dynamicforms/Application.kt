@@ -10,6 +10,7 @@ import com.lfr.dynamicforms.validation.VisibilityEvaluator
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.content.*
 import io.ktor.server.netty.*
@@ -44,8 +45,22 @@ fun Application.module(jdbcUrl: String = "jdbc:sqlite:dynamicforms.db") {
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Delete)
         allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Authorization)
     }
     install(CallLogging)
+
+    val adminUser = System.getenv("ADMIN_USER") ?: "admin"
+    val adminPass = System.getenv("ADMIN_PASS") ?: "admin"
+    install(Authentication) {
+        basic("admin-auth") {
+            realm = "Admin"
+            validate { credentials ->
+                if (credentials.name == adminUser && credentials.password == adminPass) {
+                    UserIdPrincipal(credentials.name)
+                } else null
+            }
+        }
+    }
 
     val formStore = FormStore(appJson)
     val submissionStore = SubmissionStore(appJson)
@@ -53,7 +68,9 @@ fun Application.module(jdbcUrl: String = "jdbc:sqlite:dynamicforms.db") {
 
     routing {
         formRoutes(formStore, submissionStore, validator)
-        adminRoutes(formStore, submissionStore)
-        staticResources("/admin", "admin", index = "index.html")
+        authenticate("admin-auth") {
+            adminRoutes(formStore, submissionStore)
+            staticResources("/admin", "admin", index = "index.html")
+        }
     }
 }

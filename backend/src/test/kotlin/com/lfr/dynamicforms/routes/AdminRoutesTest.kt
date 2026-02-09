@@ -43,6 +43,7 @@ class AdminRoutesTest {
     fun `POST admin forms creates a form`() = testApplication {
         application { module(testDbUrl) }
         val response = client.post("/admin/forms") {
+            basicAuth("admin", "admin")
             contentType(ContentType.Application.Json)
             setBody(newFormJson)
         }
@@ -72,6 +73,7 @@ class AdminRoutesTest {
         }
         """.trimIndent()
         val response = client.put("/admin/forms/registration_v1") {
+            basicAuth("admin", "admin")
             contentType(ContentType.Application.Json)
             setBody(updatedJson)
         }
@@ -84,6 +86,7 @@ class AdminRoutesTest {
     fun `PUT admin forms returns 404 for unknown form`() = testApplication {
         application { module(testDbUrl) }
         val response = client.put("/admin/forms/unknown") {
+            basicAuth("admin", "admin")
             contentType(ContentType.Application.Json)
             setBody(newFormJson)
         }
@@ -93,7 +96,9 @@ class AdminRoutesTest {
     @Test
     fun `DELETE admin forms removes a form`() = testApplication {
         application { module(testDbUrl) }
-        val response = client.delete("/admin/forms/feedback_v1")
+        val response = client.delete("/admin/forms/feedback_v1") {
+            basicAuth("admin", "admin")
+        }
         assertEquals(HttpStatusCode.NoContent, response.status)
 
         val getResponse = client.get("/forms/feedback_v1")
@@ -103,14 +108,18 @@ class AdminRoutesTest {
     @Test
     fun `DELETE admin forms returns 404 for unknown form`() = testApplication {
         application { module(testDbUrl) }
-        val response = client.delete("/admin/forms/nonexistent")
+        val response = client.delete("/admin/forms/nonexistent") {
+            basicAuth("admin", "admin")
+        }
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
     @Test
     fun `GET admin submissions returns empty list initially`() = testApplication {
         application { module(testDbUrl) }
-        val response = client.get("/admin/forms/registration_v1/submissions")
+        val response = client.get("/admin/forms/registration_v1/submissions") {
+            basicAuth("admin", "admin")
+        }
         assertEquals(HttpStatusCode.OK, response.status)
         val body = Json.parseToJsonElement(response.bodyAsText()).jsonArray
         assertEquals(0, body.size)
@@ -123,9 +132,18 @@ class AdminRoutesTest {
             contentType(ContentType.Application.Json)
             setBody("""{"formId":"feedback_v1","values":{"rating":"4","recommend":"yes"}}""")
         }
-        val response = client.get("/admin/forms/feedback_v1/submissions")
+        val response = client.get("/admin/forms/feedback_v1/submissions") {
+            basicAuth("admin", "admin")
+        }
         assertEquals(HttpStatusCode.OK, response.status)
         val body = Json.parseToJsonElement(response.bodyAsText()).jsonArray
         assertEquals(1, body.size)
+    }
+
+    @Test
+    fun `admin routes return 401 without credentials`() = testApplication {
+        application { module(testDbUrl) }
+        val response = client.get("/admin/forms/registration_v1/submissions")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 }

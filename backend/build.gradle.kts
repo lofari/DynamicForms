@@ -23,6 +23,7 @@ dependencies {
     implementation(libs.ktor.server.cors)
     implementation(libs.ktor.server.static)
     implementation(libs.ktor.server.call.logging)
+    implementation(libs.ktor.server.auth)
     implementation(libs.logback.classic)
     implementation(libs.exposed.core)
     implementation(libs.exposed.jdbc)

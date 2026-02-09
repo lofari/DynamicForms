@@ -93,7 +93,9 @@ class FormRoutesTest {
         assertEquals(true, body2["success"]?.jsonPrimitive?.boolean)
 
         // Verify only 1 submission stored via admin endpoint
-        val adminResponse = client.get("/admin/forms/feedback_v1/submissions")
+        val adminResponse = client.get("/admin/forms/feedback_v1/submissions") {
+            basicAuth("admin", "admin")
+        }
         val submissions = Json.parseToJsonElement(adminResponse.bodyAsText()).jsonArray
         val matchingSubmissions = submissions.filter { sub ->
             sub.jsonObject["values"]?.jsonObject?.get("rating")?.jsonPrimitive?.content == "4"
