@@ -17,6 +17,9 @@ dependencies {
     implementation(libs.ktor.server.static)
     implementation(libs.ktor.server.call.logging)
     implementation(libs.logback.classic)
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.sqlite.jdbc)
 
     testImplementation(libs.ktor.server.test)
     testImplementation(libs.kotlin.test)

@@ -29,7 +29,3 @@ include(":core:ui")
 include(":core:testing")
 include(":feature:form-wizard")
 include(":feature:form-list")
-if (providers.gradleProperty("includeBackend").getOrElse("false").toBoolean()) {
-    include(":backend")
-}
- 

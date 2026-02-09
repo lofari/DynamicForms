@@ -7,30 +7,37 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 All Gradle commands require JDK 17 (system defaults to JVM 8):
 
 ```bash
-JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew assembleDebug
+# Android
+cd android && JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew assembleDebug
+
+# Backend
+cd backend && JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew run
 ```
 
 ### Running Tests
 
 ```bash
-# All unit tests
-JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew test
+# All Android unit tests
+cd android && JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew test
 
 # Single module tests
-JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew :core:domain:test
-JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew :feature:form-wizard:test
+cd android && JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew :core:domain:test
+cd android && JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew :feature:form-wizard:test
 
 # Single test class
-JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew :core:domain:test --tests "com.lfr.dynamicforms.domain.usecase.ValidatePageUseCaseTest"
+cd android && JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew :core:domain:test --tests "com.lfr.dynamicforms.domain.usecase.ValidatePageUseCaseTest"
 
 # Static analysis
-JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew detekt
+cd android && JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew detekt
 
 # Android instrumentation tests (requires emulator/device)
-JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew connectedAndroidTest
+cd android && JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew connectedAndroidTest
 
 # Maestro E2E tests (requires running app on emulator)
-maestro test .maestro/
+maestro test android/.maestro/
+
+# Backend tests
+cd backend && JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home ./gradlew test
 ```
 
 ## Architecture
@@ -40,18 +47,21 @@ MVI + Clean Architecture with Hilt DI, organized into a multi-module structure.
 ### Module Structure
 
 ```
-build-logic/                          # Convention plugins (shared build config)
-core/model/                           # Pure Kotlin: domain models (FormElement, Form, Page, etc.)
-core/domain/                          # Pure Kotlin: use cases + repository interfaces
-core/data/                            # Android lib: Room, Retrofit, repos, WorkManager
-core/ui/                              # Android lib: theme, shared composables, common strings
-core/testing/                         # Pure Kotlin: MainDispatcherRule, test helpers
-feature/form-list/                    # Android feature: FormListScreen + ViewModel
-feature/form-wizard/                  # Android feature: FormScreen + ViewModel + elements
-app/                                  # Thin shell: DI wiring, navigation, Application class
+android/
+  build-logic/                        # Convention plugins (shared build config)
+  core/model/                         # Pure Kotlin: domain models (FormElement, Form, Page, etc.)
+  core/domain/                        # Pure Kotlin: use cases + repository interfaces
+  core/data/                          # Android lib: Room, Retrofit, repos, WorkManager
+  core/ui/                            # Android lib: theme, shared composables, common strings
+  core/testing/                       # Pure Kotlin: MainDispatcherRule, test helpers
+  feature/form-list/                  # Android feature: FormListScreen + ViewModel
+  feature/form-wizard/                # Android feature: FormScreen + ViewModel + elements
+  app/                                # Thin shell: DI wiring, navigation, Application class
+backend/                              # Standalone Ktor server (Kotlin)
+admin/                                # React admin panel (TypeScript, Vite)
 ```
 
-### Convention Plugins (build-logic/)
+### Convention Plugins (android/build-logic/)
 
 | Plugin ID | Purpose |
 |-----------|---------|
@@ -93,4 +103,4 @@ These constraints are hard-won and must be respected when updating dependencies:
 - **Compose UI tests**: Compose testing framework with semantic matchers.
   - `:feature:form-wizard` — Element composables, FormScreen, FormSuccessScreen
   - `:feature:form-list` — FormListScreen
-- **Maestro E2E** (`.maestro/`): YAML flows testing full user journeys. Tests reference `testTag` values (`field_*`, `btn_*`).
+- **Maestro E2E** (`android/.maestro/`): YAML flows testing full user journeys. Tests reference `testTag` values (`field_*`, `btn_*`).

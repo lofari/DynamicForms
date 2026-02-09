@@ -1,15 +1,20 @@
-*.iml
-.gradle
-/local.properties
-/.idea/
 .DS_Store
-**/build/
-/captures
-.externalNativeBuild
-.cxx
-local.properties
+*.iml
 
-# Admin panel
+# Android
+android/**/.gradle/
+android/.idea/
+android/**/.kotlin/
+android/local.properties
+android/**/build/
+
+# Backend
+backend/.gradle/
+backend/.kotlin/
+backend/build/
+*.db
+
+# Admin
 admin/node_modules/
 admin/dist/
 backend/src/main/resources/admin/

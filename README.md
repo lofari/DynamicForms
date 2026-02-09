@@ -31,41 +31,45 @@ https://github.com/user-attachments/assets/demo-placeholder
 # Set JAVA_HOME (required -- system JDK defaults to 8)
 export JAVA_HOME=/usr/local/Cellar/openjdk@17/17.0.12/libexec/openjdk.jdk/Contents/Home
 
-# Build
-./gradlew assembleDebug
+# Build Android app
+cd android && ./gradlew assembleDebug
 
 # Run unit tests
-./gradlew test
+cd android && ./gradlew test
 
 # Static analysis
-./gradlew detekt
+cd android && ./gradlew detekt
 
-# Optional: start the Ktor backend (the debug build auto-connects via 10.0.2.2)
-./gradlew -PincludeBackend=true :backend:run
+# Start the Ktor backend
+cd backend && ./gradlew run
 ```
 
 ## Testing
 
 | Layer | Location | What is covered |
 |-------|----------|-----------------|
-| Unit tests | `:core:model`, `:core:domain`, `:core:data`, `:feature:form-wizard`, `:feature:form-list` | Domain use cases, repository implementations, ViewModel logic, JSON deserialization, UI state |
-| Compose UI tests | `:feature:form-wizard`, `:feature:form-list` | One test file per form element + screen-level tests for form, list, and success screens |
-| Migration tests | `:core:data` (androidTest) | Room schema migration v1 to v2 preserves drafts and creates pending_submissions table |
-| Maestro E2E | `.maestro/` | Happy-path submissions, validation errors, page navigation, form list browsing |
+| Unit tests | `android/core/model`, `android/core/domain`, `android/core/data`, `android/feature/form-wizard`, `android/feature/form-list` | Domain use cases, repository implementations, ViewModel logic, JSON deserialization, UI state |
+| Compose UI tests | `android/feature/form-wizard`, `android/feature/form-list` | One test file per form element + screen-level tests for form, list, and success screens |
+| Migration tests | `android/core/data` (androidTest) | Room schema migration v1 to v2 preserves drafts and creates pending_submissions table |
+| Maestro E2E | `android/.maestro/` | Happy-path submissions, validation errors, page navigation, form list browsing |
+| Backend tests | `backend/` | Ktor route tests for form, admin, and submission endpoints |
 
 ```bash
-# All unit tests
-./gradlew test
+# All Android unit tests
+cd android && ./gradlew test
 
 # Single module tests
-./gradlew :core:domain:test
-./gradlew :feature:form-wizard:test
+cd android && ./gradlew :core:domain:test
+cd android && ./gradlew :feature:form-wizard:test
 
 # Compose UI tests (requires emulator)
-./gradlew connectedAndroidTest
+cd android && ./gradlew connectedAndroidTest
 
 # Maestro E2E (requires running app on emulator)
-maestro test .maestro/
+maestro test android/.maestro/
+
+# Backend tests
+cd backend && ./gradlew test
 ```
 
 ---
@@ -74,26 +78,28 @@ maestro test .maestro/
 
 ```
 DynamicForms/
-├── build-logic/        Gradle convention plugins (shared build config)
-├── core/
-│   ├── model/          Pure Kotlin: domain models (FormElement, Form, Page, etc.)
-│   ├── domain/         Pure Kotlin: use cases + repository interfaces
-│   ├── data/           Android lib: Room, Retrofit, repositories, WorkManager
-│   ├── ui/             Android lib: theme, shared composables, common strings
-│   └── testing/        Pure Kotlin: MainDispatcherRule, test helpers
-├── feature/
-│   ├── form-wizard/    Android feature: FormScreen + ViewModel + elements
-│   └── form-list/      Android feature: FormListScreen + ViewModel
-├── app/                Thin shell: DI wiring, navigation, Application class
-├── backend/            Ktor API server (Kotlin)
-└── admin/              React admin panel (TypeScript, Vite)
+├── android/               Android Gradle project
+│   ├── build-logic/       Gradle convention plugins (shared build config)
+│   ├── core/
+│   │   ├── model/         Pure Kotlin: domain models (FormElement, Form, Page, etc.)
+│   │   ├── domain/        Pure Kotlin: use cases + repository interfaces
+│   │   ├── data/          Android lib: Room, Retrofit, repositories, WorkManager
+│   │   ├── ui/            Android lib: theme, shared composables, common strings
+│   │   └── testing/       Pure Kotlin: MainDispatcherRule, test helpers
+│   ├── feature/
+│   │   ├── form-wizard/   Android feature: FormScreen + ViewModel + elements
+│   │   └── form-list/     Android feature: FormListScreen + ViewModel
+│   └── app/               Thin shell: DI wiring, navigation, Application class
+├── backend/               Standalone Ktor API server (Kotlin)
+├── admin/                 React admin panel (TypeScript, Vite)
+└── docs/                  Design documents and plans
 ```
 
 ### Android App
 
 MVI + Clean Architecture with Hilt dependency injection, organized as a multi-module Gradle project.
 
-**Convention Plugins** (`build-logic/`) provide consistent build configuration across all modules: SDK versions, Compose setup, Hilt/KSP wiring, and detekt static analysis.
+**Convention Plugins** (`android/build-logic/`) provide consistent build configuration across all modules: SDK versions, Compose setup, Hilt/KSP wiring, and detekt static analysis.
 
 | Module | Contents |
 |--------|----------|
@@ -107,11 +113,11 @@ MVI + Clean Architecture with Hilt dependency injection, organized as a multi-mo
 
 ### Backend (Ktor)
 
-Kotlin server providing REST APIs for form definitions and submissions.
+Standalone Kotlin server providing REST APIs for form definitions and submissions.
 
 - **Routes**: `GET /forms`, `GET /forms/{id}`, `POST /forms/{id}/submit`
 - **Admin routes**: `POST /admin/forms`, `PUT /admin/forms/{id}`, `DELETE /admin/forms/{id}`, `GET /admin/forms/{id}/submissions`
-- **Storage**: In-memory with 5 seed form templates loaded from JSON resources
+- **Storage**: SQLite via Exposed with seed form templates loaded from JSON resources
 - **Validation**: Server-side validation mirroring the Android app's logic (visibility-aware)
 
 ### Admin Panel (React)
@@ -151,7 +157,7 @@ All elements support conditional visibility via `visibleWhen`, which evaluates f
 **Start the backend:**
 
 ```bash
-./gradlew -PincludeBackend=true :backend:run   # http://localhost:8080
+cd backend && ./gradlew run   # http://localhost:8080
 ```
 
 **Build the admin panel** (requires Node.js 18+):
@@ -162,9 +168,7 @@ cd admin && npm install && npm run build   # outputs to backend/src/main/resourc
 
 Visit `http://localhost:8080/admin/` once the backend is running. For dev with hot reload: `cd admin && npm run dev`.
 
-**Connect the Android app:** The debug build auto-connects to `http://10.0.2.2:8080` (emulator alias for localhost). The release build uses `MockInterceptor` for offline operation, controlled by `BuildConfig.USE_MOCK` in `app/build.gradle.kts`.
-
-**Note:** The backend module is excluded from Android Studio indexing by default. Include it with `-PincludeBackend=true`.
+**Connect the Android app:** The debug build auto-connects to `http://10.0.2.2:8080` (emulator alias for localhost). The release build uses `MockInterceptor` for offline operation, controlled by `BuildConfig.USE_MOCK` in `android/app/build.gradle.kts`.
 
 </details>
 
@@ -174,7 +178,7 @@ Visit `http://localhost:8080/admin/` once the backend is running. For dev with h
 |-----------|-----------|
 | Android UI | Jetpack Compose + Material3 |
 | Architecture | MVI + Clean Architecture, multi-module Gradle |
-| Build | Convention plugins (`build-logic/`), R8 shrinking, detekt static analysis |
+| Build | Convention plugins (`android/build-logic/`), R8 shrinking, detekt static analysis |
 | DI | Hilt |
 | Serialization | kotlinx.serialization (polymorphic, `classDiscriminator = "type"`) |
 | Networking | Retrofit + OkHttp |

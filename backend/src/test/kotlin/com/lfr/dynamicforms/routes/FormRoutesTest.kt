@@ -6,15 +6,25 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.json.*
+import java.io.File
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class FormRoutesTest {
 
+    private val testDbFile = File.createTempFile("formRoutes", ".db")
+    private val testDbUrl = "jdbc:sqlite:${testDbFile.absolutePath}"
+
+    @AfterTest
+    fun cleanup() {
+        testDbFile.delete()
+    }
+
     @Test
     fun `GET forms returns list of form summaries`() = testApplication {
-        application { module() }
+        application { module(testDbUrl) }
         val response = client.get("/forms")
         assertEquals(HttpStatusCode.OK, response.status)
         val body = Json.parseToJsonElement(response.bodyAsText()).jsonArray
@@ -28,7 +38,7 @@ class FormRoutesTest {
 
     @Test
     fun `GET forms by id returns form definition`() = testApplication {
-        application { module() }
+        application { module(testDbUrl) }
         val response = client.get("/forms/registration_v1")
         assertEquals(HttpStatusCode.OK, response.status)
         val body = Json.parseToJsonElement(response.bodyAsText()).jsonObject
@@ -39,14 +49,14 @@ class FormRoutesTest {
 
     @Test
     fun `GET forms by unknown id returns 404`() = testApplication {
-        application { module() }
+        application { module(testDbUrl) }
         val response = client.get("/forms/unknown_form")
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
     @Test
     fun `POST submit with valid data returns success`() = testApplication {
-        application { module() }
+        application { module(testDbUrl) }
         val response = client.post("/forms/feedback_v1/submit") {
             contentType(ContentType.Application.Json)
             setBody("""{"formId":"feedback_v1","values":{"rating":"4","recommend":"yes"}}""")
@@ -58,7 +68,7 @@ class FormRoutesTest {
 
     @Test
     fun `POST submit with Idempotency-Key stores only one submission`() = testApplication {
-        application { module() }
+        application { module(testDbUrl) }
         val key = "test-idempotency-key-123"
         val body = """{"formId":"feedback_v1","values":{"rating":"4","recommend":"yes"}}"""
 
@@ -85,7 +95,6 @@ class FormRoutesTest {
         // Verify only 1 submission stored via admin endpoint
         val adminResponse = client.get("/admin/forms/feedback_v1/submissions")
         val submissions = Json.parseToJsonElement(adminResponse.bodyAsText()).jsonArray
-        // Count submissions with our values - should be 1 not 2
         val matchingSubmissions = submissions.filter { sub ->
             sub.jsonObject["values"]?.jsonObject?.get("rating")?.jsonPrimitive?.content == "4"
         }
@@ -94,7 +103,7 @@ class FormRoutesTest {
 
     @Test
     fun `POST submit with validation errors returns field errors`() = testApplication {
-        application { module() }
+        application { module(testDbUrl) }
         val response = client.post("/forms/registration_v1/submit") {
             contentType(ContentType.Application.Json)
             setBody("""{"formId":"registration_v1","values":{}}""")

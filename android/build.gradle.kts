@@ -7,12 +7,4 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.kotlin.jvm) apply false
     alias(libs.plugins.detekt) apply false
-    idea
-}
-
-idea {
-    module {
-        excludeDirs.add(file("admin"))
-        excludeDirs.add(file("backend/build"))
-    }
 }

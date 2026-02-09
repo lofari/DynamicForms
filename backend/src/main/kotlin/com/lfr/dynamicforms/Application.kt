@@ -2,6 +2,7 @@ package com.lfr.dynamicforms
 
 import com.lfr.dynamicforms.routes.adminRoutes
 import com.lfr.dynamicforms.routes.formRoutes
+import com.lfr.dynamicforms.storage.DatabaseFactory
 import com.lfr.dynamicforms.storage.FormStore
 import com.lfr.dynamicforms.storage.SubmissionStore
 import com.lfr.dynamicforms.validation.Validator
@@ -23,12 +24,14 @@ fun main() {
         .start(wait = true)
 }
 
-fun Application.module() {
+fun Application.module(jdbcUrl: String = "jdbc:sqlite:dynamicforms.db") {
     val appJson = Json {
         classDiscriminator = "type"
         ignoreUnknownKeys = true
         prettyPrint = true
     }
+
+    DatabaseFactory.init(jdbcUrl)
 
     install(ContentNegotiation) {
         json(appJson)
@@ -44,7 +47,7 @@ fun Application.module() {
     install(CallLogging)
 
     val formStore = FormStore(appJson)
-    val submissionStore = SubmissionStore()
+    val submissionStore = SubmissionStore(appJson)
     val validator = Validator(VisibilityEvaluator())
 
     routing {
