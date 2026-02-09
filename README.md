@@ -184,6 +184,22 @@ Visit `http://localhost:8080/admin/` once the backend is running. For dev with h
 
 </details>
 
+<details>
+<summary>Deploy backend to Fly.io</summary>
+
+**Prerequisites:** Install the [Fly CLI](https://fly.io/docs/flyctl/install/) and run `fly auth login`.
+
+```bash
+cd backend
+fly launch          # creates the app (choose a region, say no to databases)
+fly volumes create data --size 1 --region <region>
+fly deploy
+```
+
+The backend will be available at `https://<app-name>.fly.dev`. SQLite data is persisted on the mounted volume at `/data`. Machines auto-stop when idle and auto-start on incoming requests (free-tier friendly).
+
+</details>
+
 ## Tech Stack
 
 | Component | Technology |

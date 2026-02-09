@@ -1,11 +1,18 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ktor)
     application
 }
 
 application {
     mainClass.set("com.lfr.dynamicforms.ApplicationKt")
+}
+
+ktor {
+    fatJar {
+        archiveFileName.set("backend.jar")
+    }
 }
 
 dependencies {
