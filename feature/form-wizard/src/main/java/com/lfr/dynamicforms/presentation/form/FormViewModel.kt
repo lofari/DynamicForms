@@ -133,7 +133,6 @@ class FormViewModel @Inject constructor(
         val current = _state.value
         val form = current.form ?: return
 
-        // Client-side validation before enqueuing
         val errors = validatePage.validateAllPages(form.pages, current.values)
         if (errors.isNotEmpty()) {
             val firstPage = validatePage.firstPageWithErrors(form.pages, errors)
@@ -145,14 +144,16 @@ class FormViewModel @Inject constructor(
 
         viewModelScope.launch {
             _state.update { it.copy(isSubmitting = true) }
-            try {
-                enqueueSubmission(form.formId, form.title, current.values)
-                _state.update { it.copy(isSubmitting = false) }
-                _effect.send(FormEffect.NavigateToSuccess(form.formId, "Form queued for submission"))
-            } catch (e: Exception) {
-                _state.update { it.copy(isSubmitting = false) }
-                _effect.send(FormEffect.ShowError(e.toUserMessage()))
-            }
+            enqueueSubmission(form.formId, form.title, current.values).fold(
+                onSuccess = { _ ->
+                    _state.update { it.copy(isSubmitting = false) }
+                    _effect.send(FormEffect.NavigateToSuccess(form.formId, "Form queued for submission"))
+                },
+                onFailure = { error ->
+                    _state.update { it.copy(isSubmitting = false) }
+                    _effect.send(FormEffect.ShowError(error.toUserMessage()))
+                }
+            )
         }
     }
 
@@ -173,11 +174,10 @@ class FormViewModel @Inject constructor(
         val current = _state.value
         val formId = current.form?.formId ?: return
         viewModelScope.launch {
-            try {
-                saveDraft(formId, current.currentPageIndex, current.values)
-            } catch (e: Exception) {
-                Timber.w(e, "Draft save failed")
-            }
+            saveDraft(formId, current.currentPageIndex, current.values).fold(
+                onSuccess = { },
+                onFailure = { error -> Timber.w("Draft save failed: %s", error) }
+            )
         }
     }
 

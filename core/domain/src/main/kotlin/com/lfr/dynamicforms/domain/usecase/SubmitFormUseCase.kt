@@ -1,6 +1,10 @@
 package com.lfr.dynamicforms.domain.usecase
 
+import com.lfr.dynamicforms.domain.model.DomainError
+import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.Form
+import com.lfr.dynamicforms.domain.model.SubmissionResponse
+import com.lfr.dynamicforms.domain.model.flatMap
 import com.lfr.dynamicforms.domain.repository.DraftRepository
 import com.lfr.dynamicforms.domain.repository.FormRepository
 import javax.inject.Inject
@@ -13,32 +17,19 @@ class SubmitFormUseCase @Inject constructor(
     suspend operator fun invoke(
         form: Form,
         values: Map<String, String>
-    ): SubmitResult {
+    ): DomainResult<SubmissionResponse> {
         val errors = validatePage.validateAllPages(form.pages, values)
         if (errors.isNotEmpty()) {
-            val firstPage = validatePage.firstPageWithErrors(form.pages, errors)
-            return SubmitResult.ValidationFailed(errors, firstPage)
+            return DomainResult.Failure(DomainError.Validation(errors))
         }
 
-        val response = try {
-            formRepository.submitForm(form.formId, values)
-        } catch (e: Exception) {
-            return SubmitResult.NetworkError(e)
-        }
-
-        return if (response.success) {
-            draftRepository.deleteDraft(form.formId)
-            SubmitResult.Success(response.message ?: "Form submitted successfully")
-        } else {
-            val firstPage = validatePage.firstPageWithErrors(form.pages, response.fieldErrors)
-            SubmitResult.ServerError(response.fieldErrors, firstPage)
+        return formRepository.submitForm(form.formId, values).flatMap { response ->
+            if (response.success) {
+                draftRepository.deleteDraft(form.formId)
+                DomainResult.Success(response)
+            } else {
+                DomainResult.Success(response)
+            }
         }
     }
-}
-
-sealed class SubmitResult {
-    data class Success(val message: String) : SubmitResult()
-    data class ValidationFailed(val errors: Map<String, String>, val firstErrorPage: Int) : SubmitResult()
-    data class ServerError(val fieldErrors: Map<String, String>, val firstErrorPage: Int) : SubmitResult()
-    data class NetworkError(val exception: Throwable) : SubmitResult()
 }

@@ -1,6 +1,8 @@
 package com.lfr.dynamicforms.data.repository
 
 import com.lfr.dynamicforms.data.remote.FormApi
+import com.lfr.dynamicforms.domain.model.DomainError
+import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.Form
 import com.lfr.dynamicforms.domain.model.FormSubmission
 import com.lfr.dynamicforms.domain.model.FormSummary
@@ -11,7 +13,9 @@ import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.net.UnknownHostException
 
 class FormRepositoryImplTest {
 
@@ -19,7 +23,7 @@ class FormRepositoryImplTest {
     private val repository = FormRepositoryImpl(api)
 
     @Test
-    fun `getForms delegates to api`() = runTest {
+    fun `getForms returns Success with forms`() = runTest {
         val expected = listOf(
             FormSummary(formId = "f1", title = "Form One"),
             FormSummary(formId = "f2", title = "Form Two")
@@ -28,19 +32,19 @@ class FormRepositoryImplTest {
 
         val result = repository.getForms()
 
-        assertEquals(expected, result)
-        coVerify { api.getForms() }
+        assertTrue(result is DomainResult.Success)
+        assertEquals(expected, (result as DomainResult.Success).data)
     }
 
     @Test
-    fun `getForm passes formId to api`() = runTest {
+    fun `getForm returns Success with form`() = runTest {
         val expected = Form(formId = "f1", title = "Form One", pages = emptyList())
         coEvery { api.getForm("f1") } returns expected
 
         val result = repository.getForm("f1")
 
-        assertEquals(expected, result)
-        coVerify { api.getForm("f1") }
+        assertTrue(result is DomainResult.Success)
+        assertEquals(expected, (result as DomainResult.Success).data)
     }
 
     @Test
@@ -51,8 +55,9 @@ class FormRepositoryImplTest {
             message = "OK"
         )
 
-        repository.submitForm("f1", mapOf("k" to "v"))
+        val result = repository.submitForm("f1", mapOf("k" to "v"))
 
+        assertTrue(result is DomainResult.Success)
         coVerify { api.submitForm("f1", any(), any()) }
         val captured = submissionSlot.captured
         assertEquals("f1", captured.formId)
@@ -72,19 +77,22 @@ class FormRepositoryImplTest {
     }
 
     @Test
-    fun `submitForm returns response from api`() = runTest {
-        val expected = SubmissionResponse(success = true, message = "Done")
-        coEvery { api.submitForm(any(), any(), any()) } returns expected
+    fun `getForm returns Failure with Network error on UnknownHostException`() = runTest {
+        coEvery { api.getForm("x") } throws UnknownHostException("no host")
 
-        val result = repository.submitForm("f1", mapOf("k" to "v"))
+        val result = repository.getForm("x")
 
-        assertEquals(expected, result)
+        assertTrue(result is DomainResult.Failure)
+        assertTrue((result as DomainResult.Failure).error is DomainError.Network)
     }
 
-    @Test(expected = RuntimeException::class)
-    fun `getForm propagates exceptions`() = runTest {
+    @Test
+    fun `getForm returns Failure with Unknown error on RuntimeException`() = runTest {
         coEvery { api.getForm("x") } throws RuntimeException("fail")
 
-        repository.getForm("x")
+        val result = repository.getForm("x")
+
+        assertTrue(result is DomainResult.Failure)
+        assertTrue((result as DomainResult.Failure).error is DomainError.Unknown)
     }
 }

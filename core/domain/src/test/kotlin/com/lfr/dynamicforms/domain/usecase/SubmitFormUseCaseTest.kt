@@ -1,5 +1,7 @@
 package com.lfr.dynamicforms.domain.usecase
 
+import com.lfr.dynamicforms.domain.model.DomainError
+import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.Form
 import com.lfr.dynamicforms.domain.model.Page
 import com.lfr.dynamicforms.domain.model.SubmissionResponse
@@ -18,7 +20,7 @@ import org.junit.Test
 class SubmitFormUseCaseTest {
 
     private val formRepo = mockk<FormRepository>()
-    private val draftRepo = mockk<DraftRepository>(relaxUnitFun = true)
+    private val draftRepo = mockk<DraftRepository>()
     private val validatePage = mockk<ValidatePageUseCase>()
     private val useCase = SubmitFormUseCase(formRepo, draftRepo, validatePage)
 
@@ -34,96 +36,61 @@ class SubmitFormUseCaseTest {
     private val values = mapOf("name" to "Jane", "email" to "jane@test.com")
 
     @Test
-    fun `validation errors return ValidationFailed without API call`() = runTest {
+    fun `validation errors return Failure with Validation error`() = runTest {
         val errors = mapOf("name" to "Required")
         every { validatePage.validateAllPages(form.pages, values) } returns errors
-        every { validatePage.firstPageWithErrors(form.pages, errors) } returns 0
 
         val result = useCase(form, values)
 
-        assertTrue(result is SubmitResult.ValidationFailed)
-        val failed = result as SubmitResult.ValidationFailed
-        assertEquals(errors, failed.errors)
+        assertTrue(result is DomainResult.Failure)
+        val error = (result as DomainResult.Failure).error
+        assertTrue(error is DomainError.Validation)
+        assertEquals(errors, (error as DomainError.Validation).fieldErrors)
         coVerify(exactly = 0) { formRepo.submitForm(any(), any(), any()) }
-    }
-
-    @Test
-    fun `ValidationFailed includes correct first error page`() = runTest {
-        val errors = mapOf("email" to "Invalid email")
-        every { validatePage.validateAllPages(form.pages, values) } returns errors
-        every { validatePage.firstPageWithErrors(form.pages, errors) } returns 1
-
-        val result = useCase(form, values)
-
-        assertTrue(result is SubmitResult.ValidationFailed)
-        assertEquals(1, (result as SubmitResult.ValidationFailed).firstErrorPage)
     }
 
     @Test
     fun `successful submission returns Success and deletes draft`() = runTest {
         every { validatePage.validateAllPages(form.pages, values) } returns emptyMap()
-        coEvery { formRepo.submitForm("f1", values, any()) } returns SubmissionResponse(success = true, message = "Done")
+        coEvery { formRepo.submitForm("f1", values, any()) } returns DomainResult.Success(
+            SubmissionResponse(success = true, message = "Done")
+        )
+        coEvery { draftRepo.deleteDraft("f1") } returns DomainResult.Success(Unit)
 
         val result = useCase(form, values)
 
-        assertTrue(result is SubmitResult.Success)
-        assertEquals("Done", (result as SubmitResult.Success).message)
+        assertTrue(result is DomainResult.Success)
+        val response = (result as DomainResult.Success).data
+        assertTrue(response.success)
+        assertEquals("Done", response.message)
         coVerify { draftRepo.deleteDraft("f1") }
     }
 
     @Test
-    fun `success with null message uses default`() = runTest {
-        every { validatePage.validateAllPages(form.pages, values) } returns emptyMap()
-        coEvery { formRepo.submitForm("f1", values, any()) } returns SubmissionResponse(success = true, message = null)
-
-        val result = useCase(form, values)
-
-        assertTrue(result is SubmitResult.Success)
-        assertEquals("Form submitted successfully", (result as SubmitResult.Success).message)
-    }
-
-    @Test
-    fun `server error returns ServerError with field errors`() = runTest {
+    fun `server error returns Success with fieldErrors`() = runTest {
         val fieldErrors = mapOf("name" to "too short")
         every { validatePage.validateAllPages(form.pages, values) } returns emptyMap()
-        coEvery { formRepo.submitForm("f1", values, any()) } returns SubmissionResponse(
-            success = false,
-            fieldErrors = fieldErrors
+        coEvery { formRepo.submitForm("f1", values, any()) } returns DomainResult.Success(
+            SubmissionResponse(success = false, fieldErrors = fieldErrors)
         )
-        every { validatePage.firstPageWithErrors(form.pages, fieldErrors) } returns 0
 
         val result = useCase(form, values)
 
-        assertTrue(result is SubmitResult.ServerError)
-        val serverError = result as SubmitResult.ServerError
-        assertEquals(fieldErrors, serverError.fieldErrors)
+        assertTrue(result is DomainResult.Success)
+        val response = (result as DomainResult.Success).data
+        assertEquals(false, response.success)
+        assertEquals(fieldErrors, response.fieldErrors)
     }
 
     @Test
-    fun `server error includes first error page`() = runTest {
-        val fieldErrors = mapOf("email" to "already taken")
+    fun `network error from repo propagates as Failure`() = runTest {
         every { validatePage.validateAllPages(form.pages, values) } returns emptyMap()
-        coEvery { formRepo.submitForm("f1", values, any()) } returns SubmissionResponse(
-            success = false,
-            fieldErrors = fieldErrors
-        )
-        every { validatePage.firstPageWithErrors(form.pages, fieldErrors) } returns 1
+        coEvery { formRepo.submitForm("f1", values, any()) } returns DomainResult.Failure(DomainError.Network())
 
         val result = useCase(form, values)
 
-        assertTrue(result is SubmitResult.ServerError)
-        assertEquals(1, (result as SubmitResult.ServerError).firstErrorPage)
-    }
-
-    @Test
-    fun `network exception returns NetworkError`() = runTest {
-        every { validatePage.validateAllPages(form.pages, values) } returns emptyMap()
-        coEvery { formRepo.submitForm("f1", values, any()) } throws RuntimeException("Timeout")
-
-        val result = useCase(form, values)
-
-        assertTrue(result is SubmitResult.NetworkError)
-        assertEquals("Timeout", (result as SubmitResult.NetworkError).exception.message)
+        assertTrue(result is DomainResult.Failure)
+        assertTrue((result as DomainResult.Failure).error is DomainError.Network)
         coVerify(exactly = 0) { draftRepo.deleteDraft(any()) }
     }
 
@@ -131,11 +98,9 @@ class SubmitFormUseCaseTest {
     fun `draft not deleted on server error`() = runTest {
         val fieldErrors = mapOf("name" to "too short")
         every { validatePage.validateAllPages(form.pages, values) } returns emptyMap()
-        coEvery { formRepo.submitForm("f1", values, any()) } returns SubmissionResponse(
-            success = false,
-            fieldErrors = fieldErrors
+        coEvery { formRepo.submitForm("f1", values, any()) } returns DomainResult.Success(
+            SubmissionResponse(success = false, fieldErrors = fieldErrors)
         )
-        every { validatePage.firstPageWithErrors(form.pages, fieldErrors) } returns 0
 
         useCase(form, values)
 

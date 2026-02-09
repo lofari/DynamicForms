@@ -22,11 +22,15 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -50,13 +54,23 @@ fun FormListScreen(
     viewModel: FormListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is FormListEffect.ShowError -> snackbarHostState.showSnackbar(effect.message)
+            }
+        }
+    }
 
     FormListScreenContent(
         state = state,
         onFormClick = onFormClick,
         onRetry = { viewModel.refresh() },
         onRetrySubmission = { viewModel.retrySubmission(it) },
-        onDiscardSubmission = { viewModel.discardSubmission(it) }
+        onDiscardSubmission = { viewModel.discardSubmission(it) },
+        snackbarHostState = snackbarHostState
     )
 }
 
@@ -67,10 +81,12 @@ fun FormListScreenContent(
     onFormClick: (String) -> Unit,
     onRetry: () -> Unit = {},
     onRetrySubmission: (String) -> Unit = {},
-    onDiscardSubmission: (String) -> Unit = {}
+    onDiscardSubmission: (String) -> Unit = {},
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() }
 ) {
     Scaffold(
         modifier = Modifier.semantics { testTagsAsResourceId = true },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = { TopAppBar(title = { Text(stringResource(R.string.form_list_title)) }) }
     ) { padding ->
         when {

@@ -4,14 +4,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.lfr.dynamicforms.domain.model.FormSummary
 import com.lfr.dynamicforms.domain.model.PendingSubmission
+import com.lfr.dynamicforms.domain.model.fold
 import com.lfr.dynamicforms.domain.repository.DraftRepository
 import com.lfr.dynamicforms.domain.repository.FormRepository
 import com.lfr.dynamicforms.domain.repository.SubmissionQueueRepository
 import com.lfr.dynamicforms.domain.usecase.SyncWorkScheduler
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.lfr.dynamicforms.presentation.util.toUserMessage
@@ -26,6 +29,10 @@ data class FormListState(
     val errorMessage: String? = null
 )
 
+sealed interface FormListEffect {
+    data class ShowError(val message: String) : FormListEffect
+}
+
 @HiltViewModel
 class FormListViewModel @Inject constructor(
     private val formRepository: FormRepository,
@@ -37,6 +44,9 @@ class FormListViewModel @Inject constructor(
     private val _state = MutableStateFlow(FormListState())
     val state: StateFlow<FormListState> = _state.asStateFlow()
 
+    private val _effect = Channel<FormListEffect>(Channel.BUFFERED)
+    val effect = _effect.receiveAsFlow()
+
     init {
         loadForms()
         observePendingSubmissions()
@@ -46,27 +56,40 @@ class FormListViewModel @Inject constructor(
 
     fun retrySubmission(id: String) {
         viewModelScope.launch {
-            submissionQueueRepository.retry(id)
-            syncWorkScheduler.scheduleSync()
+            submissionQueueRepository.retry(id).fold(
+                onSuccess = { syncWorkScheduler.scheduleSync() },
+                onFailure = { error -> _effect.send(FormListEffect.ShowError(error.toUserMessage())) }
+            )
         }
     }
 
     fun discardSubmission(id: String) {
         viewModelScope.launch {
-            submissionQueueRepository.delete(id)
+            submissionQueueRepository.delete(id).fold(
+                onSuccess = { },
+                onFailure = { error -> _effect.send(FormListEffect.ShowError(error.toUserMessage())) }
+            )
         }
     }
 
     private fun loadForms() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            try {
-                val forms = formRepository.getForms()
-                val drafts = draftRepository.getFormIdsWithDrafts().toSet()
-                _state.update { it.copy(isLoading = false, forms = forms, drafts = drafts) }
-            } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, errorMessage = e.toUserMessage()) }
-            }
+            formRepository.getForms().fold(
+                onSuccess = { forms ->
+                    draftRepository.getFormIdsWithDrafts().fold(
+                        onSuccess = { drafts ->
+                            _state.update { it.copy(isLoading = false, forms = forms, drafts = drafts.toSet()) }
+                        },
+                        onFailure = {
+                            _state.update { it.copy(isLoading = false, forms = forms, drafts = emptySet()) }
+                        }
+                    )
+                },
+                onFailure = { error ->
+                    _state.update { it.copy(isLoading = false, errorMessage = error.toUserMessage()) }
+                }
+            )
         }
     }
 

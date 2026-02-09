@@ -1,6 +1,8 @@
 package com.lfr.dynamicforms.presentation.list
 
 import com.lfr.dynamicforms.testing.MainDispatcherRule
+import com.lfr.dynamicforms.domain.model.DomainError
+import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.FormSummary
 import com.lfr.dynamicforms.domain.model.PendingSubmission
 import com.lfr.dynamicforms.domain.model.SubmissionStatus
@@ -36,6 +38,8 @@ class FormListViewModelTest {
 
     init {
         coEvery { submissionQueueRepo.observeAll() } returns pendingFlow
+        coEvery { submissionQueueRepo.retry(any()) } returns DomainResult.Success(Unit)
+        coEvery { submissionQueueRepo.delete(any()) } returns DomainResult.Success(Unit)
     }
 
     private fun createViewModel() = FormListViewModel(formRepo, draftRepo, submissionQueueRepo, syncWorkScheduler)
@@ -46,8 +50,8 @@ class FormListViewModelTest {
             FormSummary("f1", "Form 1", "Desc 1", pageCount = 2, fieldCount = 5),
             FormSummary("f2", "Form 2", "Desc 2", pageCount = 3, fieldCount = 8)
         )
-        coEvery { formRepo.getForms() } returns forms
-        coEvery { draftRepo.getFormIdsWithDrafts() } returns listOf("f1")
+        coEvery { formRepo.getForms() } returns DomainResult.Success(forms)
+        coEvery { draftRepo.getFormIdsWithDrafts() } returns DomainResult.Success(listOf("f1"))
 
         val vm = createViewModel()
 
@@ -60,7 +64,7 @@ class FormListViewModelTest {
 
     @Test
     fun `initial load error sets errorMessage`() = runTest {
-        coEvery { formRepo.getForms() } throws RuntimeException("Network error")
+        coEvery { formRepo.getForms() } returns DomainResult.Failure(DomainError.Unknown())
 
         val vm = createViewModel()
 
@@ -73,8 +77,8 @@ class FormListViewModelTest {
     @Test
     fun `refresh reloads forms`() = runTest {
         val initialForms = listOf(FormSummary("f1", "Form 1"))
-        coEvery { formRepo.getForms() } returns initialForms
-        coEvery { draftRepo.getFormIdsWithDrafts() } returns emptyList()
+        coEvery { formRepo.getForms() } returns DomainResult.Success(initialForms)
+        coEvery { draftRepo.getFormIdsWithDrafts() } returns DomainResult.Success(emptyList())
 
         val vm = createViewModel()
         assertEquals(initialForms, vm.state.value.forms)
@@ -84,7 +88,7 @@ class FormListViewModelTest {
             FormSummary("f1", "Form 1"),
             FormSummary("f2", "Form 2")
         )
-        coEvery { formRepo.getForms() } returns updatedForms
+        coEvery { formRepo.getForms() } returns DomainResult.Success(updatedForms)
 
         vm.refresh()
 
@@ -93,8 +97,8 @@ class FormListViewModelTest {
 
     @Test
     fun `empty drafts returns empty set`() = runTest {
-        coEvery { formRepo.getForms() } returns listOf(FormSummary("f1", "Form 1"))
-        coEvery { draftRepo.getFormIdsWithDrafts() } returns emptyList()
+        coEvery { formRepo.getForms() } returns DomainResult.Success(listOf(FormSummary("f1", "Form 1")))
+        coEvery { draftRepo.getFormIdsWithDrafts() } returns DomainResult.Success(emptyList())
 
         val vm = createViewModel()
 
@@ -108,8 +112,8 @@ class FormListViewModelTest {
             FormSummary("f2", "Form 2"),
             FormSummary("f3", "Form 3")
         )
-        coEvery { formRepo.getForms() } returns forms
-        coEvery { draftRepo.getFormIdsWithDrafts() } returns listOf("f1", "f3")
+        coEvery { formRepo.getForms() } returns DomainResult.Success(forms)
+        coEvery { draftRepo.getFormIdsWithDrafts() } returns DomainResult.Success(listOf("f1", "f3"))
 
         val vm = createViewModel()
 
@@ -120,8 +124,8 @@ class FormListViewModelTest {
 
     @Test
     fun `pending submissions are loaded into state`() = runTest {
-        coEvery { formRepo.getForms() } returns emptyList()
-        coEvery { draftRepo.getFormIdsWithDrafts() } returns emptyList()
+        coEvery { formRepo.getForms() } returns DomainResult.Success(emptyList())
+        coEvery { draftRepo.getFormIdsWithDrafts() } returns DomainResult.Success(emptyList())
 
         val vm = createViewModel()
 
@@ -140,8 +144,8 @@ class FormListViewModelTest {
 
     @Test
     fun `retry calls repository retry and schedules sync`() = runTest {
-        coEvery { formRepo.getForms() } returns emptyList()
-        coEvery { draftRepo.getFormIdsWithDrafts() } returns emptyList()
+        coEvery { formRepo.getForms() } returns DomainResult.Success(emptyList())
+        coEvery { draftRepo.getFormIdsWithDrafts() } returns DomainResult.Success(emptyList())
 
         val vm = createViewModel()
         vm.retrySubmission("sub-1")
@@ -152,8 +156,8 @@ class FormListViewModelTest {
 
     @Test
     fun `discard calls repository delete`() = runTest {
-        coEvery { formRepo.getForms() } returns emptyList()
-        coEvery { draftRepo.getFormIdsWithDrafts() } returns emptyList()
+        coEvery { formRepo.getForms() } returns DomainResult.Success(emptyList())
+        coEvery { draftRepo.getFormIdsWithDrafts() } returns DomainResult.Success(emptyList())
 
         val vm = createViewModel()
         vm.discardSubmission("sub-1")

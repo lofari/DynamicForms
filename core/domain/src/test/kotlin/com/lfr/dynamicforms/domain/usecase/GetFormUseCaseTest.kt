@@ -1,5 +1,6 @@
 package com.lfr.dynamicforms.domain.usecase
 
+import com.lfr.dynamicforms.domain.model.DomainError
 import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.Draft
 import com.lfr.dynamicforms.domain.model.Form
@@ -31,8 +32,8 @@ class GetFormUseCaseTest {
             pages = listOf(Page(pageId = "p1", title = "Page 1", elements = listOf(toggle, textField)))
         )
 
-        coEvery { formRepo.getForm("f1") } returns form
-        coEvery { draftRepo.getDraft("f1") } returns null
+        coEvery { formRepo.getForm("f1") } returns DomainResult.Success(form)
+        coEvery { draftRepo.getDraft("f1") } returns DomainResult.Success(null)
 
         val result = useCase("f1")
 
@@ -59,8 +60,8 @@ class GetFormUseCaseTest {
             updatedAt = 1000L
         )
 
-        coEvery { formRepo.getForm("f1") } returns form
-        coEvery { draftRepo.getDraft("f1") } returns draft
+        coEvery { formRepo.getForm("f1") } returns DomainResult.Success(form)
+        coEvery { draftRepo.getDraft("f1") } returns DomainResult.Success(draft)
 
         val result = useCase("f1") as DomainResult.Success
 
@@ -81,8 +82,8 @@ class GetFormUseCaseTest {
             updatedAt = 1000L
         )
 
-        coEvery { formRepo.getForm("f1") } returns form
-        coEvery { draftRepo.getDraft("f1") } returns draft
+        coEvery { formRepo.getForm("f1") } returns DomainResult.Success(form)
+        coEvery { draftRepo.getDraft("f1") } returns DomainResult.Success(draft)
 
         val result = useCase("f1") as DomainResult.Success
 
@@ -98,8 +99,8 @@ class GetFormUseCaseTest {
             pages = listOf(Page(pageId = "p1", title = "Page 1", elements = listOf(textField)))
         )
 
-        coEvery { formRepo.getForm("f1") } returns form
-        coEvery { draftRepo.getDraft("f1") } returns null
+        coEvery { formRepo.getForm("f1") } returns DomainResult.Success(form)
+        coEvery { draftRepo.getDraft("f1") } returns DomainResult.Success(null)
 
         val result = useCase("f1") as DomainResult.Success
 
@@ -107,12 +108,24 @@ class GetFormUseCaseTest {
     }
 
     @Test
-    fun `repository exception is captured in Failure`() = runTest {
-        coEvery { formRepo.getForm("f1") } throws RuntimeException("Network error")
+    fun `form repository failure propagates as Failure`() = runTest {
+        coEvery { formRepo.getForm("f1") } returns DomainResult.Failure(DomainError.Network())
 
         val result = useCase("f1")
 
         assertTrue(result is DomainResult.Failure)
-        assertEquals("Network error", (result as DomainResult.Failure).error.message)
+        assertTrue((result as DomainResult.Failure).error is DomainError.Network)
+    }
+
+    @Test
+    fun `draft repository failure propagates as Failure`() = runTest {
+        val form = Form(formId = "f1", title = "Test", pages = emptyList())
+        coEvery { formRepo.getForm("f1") } returns DomainResult.Success(form)
+        coEvery { draftRepo.getDraft("f1") } returns DomainResult.Failure(DomainError.Storage())
+
+        val result = useCase("f1")
+
+        assertTrue(result is DomainResult.Failure)
+        assertTrue((result as DomainResult.Failure).error is DomainError.Storage)
     }
 }

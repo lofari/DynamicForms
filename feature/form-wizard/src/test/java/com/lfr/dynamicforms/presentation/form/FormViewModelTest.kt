@@ -3,6 +3,7 @@ package com.lfr.dynamicforms.presentation.form
 import androidx.lifecycle.SavedStateHandle
 import app.cash.turbine.test
 import com.lfr.dynamicforms.testing.MainDispatcherRule
+import com.lfr.dynamicforms.domain.model.DomainError
 import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.Form
 import com.lfr.dynamicforms.domain.model.Page
@@ -35,11 +36,15 @@ class FormViewModelTest {
     val mainDispatcherRule = MainDispatcherRule()
 
     private val getForm = mockk<GetFormUseCase>()
-    private val saveDraft = mockk<SaveDraftUseCase>(relaxUnitFun = true)
+    private val saveDraft = mockk<SaveDraftUseCase>()
     private val submitForm = mockk<SubmitFormUseCase>()
     private val enqueueSubmission = mockk<EnqueueSubmissionUseCase>()
     private val validatePage = mockk<ValidatePageUseCase>()
     private val evaluateVisibility = mockk<EvaluateVisibilityUseCase>(relaxed = true)
+
+    init {
+        coEvery { saveDraft(any(), any(), any()) } returns DomainResult.Success(Unit)
+    }
 
     private fun createViewModel(savedStateHandle: SavedStateHandle = SavedStateHandle()) =
         FormViewModel(savedStateHandle, getForm, saveDraft, submitForm, enqueueSubmission, validatePage, evaluateVisibility)
@@ -93,7 +98,7 @@ class FormViewModelTest {
 
     @Test
     fun `LoadForm error sets errorMessage`() = runTest {
-        coEvery { getForm("f1") } returns DomainResult.Failure(RuntimeException("Oops"))
+        coEvery { getForm("f1") } returns DomainResult.Failure(DomainError.Unknown(RuntimeException("Oops")))
 
         val vm = createViewModel()
         vm.onAction(FormAction.LoadForm("f1"))
@@ -189,7 +194,7 @@ class FormViewModelTest {
     fun `Submit enqueues and emits NavigateToSuccess`() = runTest {
         val vm = loadedViewModel()
         every { validatePage.validateAllPages(any(), any()) } returns emptyMap()
-        coEvery { enqueueSubmission(any(), any(), any()) } returns "uuid-123"
+        coEvery { enqueueSubmission(any(), any(), any()) } returns DomainResult.Success("uuid-123")
 
         vm.effect.test {
             vm.onAction(FormAction.Submit)
@@ -204,7 +209,7 @@ class FormViewModelTest {
     fun `Submit calls EnqueueSubmissionUseCase`() = runTest {
         val vm = loadedViewModel()
         every { validatePage.validateAllPages(any(), any()) } returns emptyMap()
-        coEvery { enqueueSubmission(any(), any(), any()) } returns "uuid-123"
+        coEvery { enqueueSubmission(any(), any(), any()) } returns DomainResult.Success("uuid-123")
 
         vm.effect.test {
             vm.onAction(FormAction.Submit)
@@ -219,7 +224,7 @@ class FormViewModelTest {
     fun `Submit sets isSubmitting false after completion`() = runTest {
         val vm = loadedViewModel()
         every { validatePage.validateAllPages(any(), any()) } returns emptyMap()
-        coEvery { enqueueSubmission(any(), any(), any()) } returns "uuid-123"
+        coEvery { enqueueSubmission(any(), any(), any()) } returns DomainResult.Success("uuid-123")
 
         vm.effect.test {
             vm.onAction(FormAction.Submit)
@@ -249,7 +254,7 @@ class FormViewModelTest {
     fun `Submit enqueue error emits ShowError`() = runTest {
         val vm = loadedViewModel()
         every { validatePage.validateAllPages(any(), any()) } returns emptyMap()
-        coEvery { enqueueSubmission(any(), any(), any()) } throws RuntimeException("DB error")
+        coEvery { enqueueSubmission(any(), any(), any()) } returns DomainResult.Failure(DomainError.Storage())
 
         vm.effect.test {
             vm.onAction(FormAction.Submit)

@@ -2,6 +2,7 @@ package com.lfr.dynamicforms.data.repository
 
 import com.lfr.dynamicforms.data.local.PendingSubmissionDao
 import com.lfr.dynamicforms.data.local.PendingSubmissionEntity
+import com.lfr.dynamicforms.domain.model.DomainResult
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -10,6 +11,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class SubmissionQueueRepositoryImplTest {
@@ -23,8 +25,10 @@ class SubmissionQueueRepositoryImplTest {
         val entitySlot = slot<PendingSubmissionEntity>()
         coEvery { dao.upsert(capture(entitySlot)) } returns Unit
 
-        val id = repository.enqueue("f1", "Test Form", mapOf("name" to "Jane"))
+        val result = repository.enqueue("f1", "Test Form", mapOf("name" to "Jane"))
 
+        assertTrue(result is DomainResult.Success)
+        val id = (result as DomainResult.Success).data
         assertNotNull(id)
         val captured = entitySlot.captured
         assertEquals(id, captured.id)
@@ -38,8 +42,9 @@ class SubmissionQueueRepositoryImplTest {
 
     @Test
     fun `retry resets status and attemptCount`() = runTest {
-        repository.retry("sub-1")
+        val result = repository.retry("sub-1")
 
+        assertTrue(result is DomainResult.Success)
         coVerify {
             dao.updateStatus(
                 id = "sub-1",
@@ -53,8 +58,9 @@ class SubmissionQueueRepositoryImplTest {
 
     @Test
     fun `delete removes entity`() = runTest {
-        repository.delete("sub-1")
+        val result = repository.delete("sub-1")
 
+        assertTrue(result is DomainResult.Success)
         coVerify { dao.delete("sub-1") }
     }
 }

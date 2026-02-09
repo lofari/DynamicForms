@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.lfr.dynamicforms.domain.model.fold
 import com.lfr.dynamicforms.domain.repository.SubmissionQueueRepository
+import com.lfr.dynamicforms.domain.usecase.SyncResult
 import com.lfr.dynamicforms.domain.usecase.SyncSubmissionUseCase
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
@@ -19,13 +21,25 @@ class SyncSubmissionsWorker @AssistedInject constructor(
 ) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val pending = submissionQueueRepository.getPendingSubmissions()
+        val pending = submissionQueueRepository.getPendingSubmissions().fold(
+            onSuccess = { it },
+            onFailure = { error ->
+                Timber.e("SyncSubmissionsWorker: failed to fetch pending submissions: %s", error)
+                return Result.retry()
+            }
+        )
         Timber.d("SyncSubmissionsWorker: %d pending submissions", pending.size)
+
+        var hasRetryable = false
         for (submission in pending) {
             Timber.d("Syncing submission %s for form %s", submission.id, submission.formId)
-            syncSubmission(submission)
+            when (syncSubmission(submission)) {
+                SyncResult.Retryable -> hasRetryable = true
+                else -> { }
+            }
         }
-        Timber.d("SyncSubmissionsWorker: completed")
-        return Result.success()
+
+        Timber.d("SyncSubmissionsWorker: completed (hasRetryable=%s)", hasRetryable)
+        return if (hasRetryable) Result.retry() else Result.success()
     }
 }

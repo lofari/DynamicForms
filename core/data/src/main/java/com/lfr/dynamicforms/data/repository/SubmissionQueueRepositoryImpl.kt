@@ -2,6 +2,7 @@ package com.lfr.dynamicforms.data.repository
 
 import com.lfr.dynamicforms.data.local.PendingSubmissionDao
 import com.lfr.dynamicforms.data.local.PendingSubmissionEntity
+import com.lfr.dynamicforms.domain.model.DomainResult
 import com.lfr.dynamicforms.domain.model.PendingSubmission
 import com.lfr.dynamicforms.domain.model.SubmissionStatus
 import com.lfr.dynamicforms.domain.repository.SubmissionQueueRepository
@@ -17,24 +18,25 @@ class SubmissionQueueRepositoryImpl @Inject constructor(
     private val json: Json
 ) : SubmissionQueueRepository {
 
-    override suspend fun enqueue(formId: String, formTitle: String, values: Map<String, String>): String {
-        val id = UUID.randomUUID().toString()
-        val now = System.currentTimeMillis()
-        dao.upsert(
-            PendingSubmissionEntity(
-                id = id,
-                formId = formId,
-                formTitle = formTitle,
-                valuesJson = json.encodeToString(values),
-                status = SubmissionStatus.PENDING.name,
-                errorMessage = null,
-                attemptCount = 0,
-                createdAt = now,
-                updatedAt = now
+    override suspend fun enqueue(formId: String, formTitle: String, values: Map<String, String>): DomainResult<String> =
+        safeStorageCall {
+            val id = UUID.randomUUID().toString()
+            val now = System.currentTimeMillis()
+            dao.upsert(
+                PendingSubmissionEntity(
+                    id = id,
+                    formId = formId,
+                    formTitle = formTitle,
+                    valuesJson = json.encodeToString(values),
+                    status = SubmissionStatus.PENDING.name,
+                    errorMessage = null,
+                    attemptCount = 0,
+                    createdAt = now,
+                    updatedAt = now
+                )
             )
-        )
-        return id
-    }
+            id
+        }
 
     override fun observeAll(): Flow<List<PendingSubmission>> =
         dao.observeAll().map { entities -> entities.map { it.toDomain() } }
@@ -42,15 +44,15 @@ class SubmissionQueueRepositoryImpl @Inject constructor(
     override fun observePendingCountByFormId(formId: String): Flow<Int> =
         dao.observePendingCountByFormId(formId)
 
-    override suspend fun getPendingSubmissions(): List<PendingSubmission> =
-        dao.getPending().map { it.toDomain() }
+    override suspend fun getPendingSubmissions(): DomainResult<List<PendingSubmission>> =
+        safeStorageCall { dao.getPending().map { it.toDomain() } }
 
     override suspend fun updateStatus(
         id: String,
         status: SubmissionStatus,
         errorMessage: String?,
         attemptCount: Int?
-    ) {
+    ): DomainResult<Unit> = safeStorageCall {
         val existing = dao.getPending().find { it.id == id }
         dao.updateStatus(
             id = id,
@@ -61,11 +63,11 @@ class SubmissionQueueRepositoryImpl @Inject constructor(
         )
     }
 
-    override suspend fun delete(id: String) {
+    override suspend fun delete(id: String): DomainResult<Unit> = safeStorageCall {
         dao.delete(id)
     }
 
-    override suspend fun retry(id: String) {
+    override suspend fun retry(id: String): DomainResult<Unit> = safeStorageCall {
         dao.updateStatus(
             id = id,
             status = SubmissionStatus.PENDING.name,
