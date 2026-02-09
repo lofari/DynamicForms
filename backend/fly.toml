@@ -1,4 +1,4 @@
-app = "dynamicforms"
+app = "dynamicforms-lfr"
 primary_region = "ams"
 
 [build]
