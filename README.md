@@ -18,10 +18,8 @@ An Android app that receives polymorphic JSON form definitions from a backend, p
 - **Real backend** (Ktor) + **React admin panel** with Monaco JSON editor, live preview, and CSV export of submissions
 
 ## Demo
+![ScreenRecording2026-02-09at07 27 54-ezgif com-video-to-gif-converter](https://github.com/user-attachments/assets/70376f7c-94c9-4364-aab0-c1f3578050e4)
 
-https://github.com/user-attachments/assets/demo-placeholder
-
-> Replace the link above with a screen recording or GIF showing a form being filled, validated, and submitted.
 
 ## Running the App
 
