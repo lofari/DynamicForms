@@ -149,10 +149,22 @@ Single-page application served by Ktor at `/admin`.
 
 All elements support conditional visibility via `visibleWhen`, which evaluates field values against operators like `equals`, `not_equals`, `greater_than`, `less_than`, `contains`, `is_empty`, and `is_not_empty`.
 
+## Project Structure
+
+This is a monorepo with three independent projects:
+
+| Directory | Description | Build system |
+|-----------|-------------|--------------|
+| `android/` | Multi-module Android app (Compose, Hilt, Room) | Gradle (Kotlin 2.0.21) |
+| `backend/` | Standalone Ktor REST API server | Gradle (Kotlin 2.1.20) |
+| `admin/` | React admin panel (TypeScript, Vite) | npm |
+
+Each Gradle project has its own wrapper, version catalog, and settings -- they build independently.
+
 ## Setup Details
 
 <details>
-<summary>Backend and admin panel setup (optional)</summary>
+<summary>Backend and admin panel setup</summary>
 
 **Start the backend:**
 
