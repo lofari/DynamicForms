@@ -32,7 +32,6 @@ fun Route.adminRoutes(
         val formId = call.parameters["formId"]
             ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing formId")
         if (formStore.deleteForm(formId)) {
-            submissionStore.deleteSubmissions(formId)
             call.respond(HttpStatusCode.NoContent)
         } else {
             call.respond(HttpStatusCode.NotFound, mapOf("error" to "Form not found"))
